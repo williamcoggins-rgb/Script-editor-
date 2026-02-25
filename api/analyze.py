@@ -23,8 +23,12 @@ import sys
 import os
 import random
 
-# Add parent dir so we can import the engine
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add parent dir so we can import the engine module.
+# On Vercel, __file__ is inside /var/task/api/ and the engine is at /var/task/
+# Locally, it's at ./api/ and the engine is at ./
+_parent = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _parent not in sys.path:
+    sys.path.insert(0, _parent)
 
 from unified_comics_rules_engine_studio import (
     build_unified_comics_engine,
