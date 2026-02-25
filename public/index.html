@@ -3,22 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Comics Script Editor</title>
+<title>Script Editor — Upload, Read, Edit</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
   :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #21262d;
-    --border: #30363d;
-    --text: #e6edf3;
-    --text-dim: #8b949e;
-    --accent: #58a6ff;
-    --green: #3fb950;
-    --yellow: #d29922;
-    --red: #f85149;
-    --orange: #db6d28;
-    --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
-    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-hover: #f5f5f4;
+    --border: #e7e5e4;
+    --border-strong: #d6d3d1;
+    --text: #1c1917;
+    --text-secondary: #57534e;
+    --text-muted: #a8a29e;
+    --accent: #2563eb;
+    --accent-light: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-light: #dcfce7;
+    --warning: #ca8a04;
+    --warning-light: #fef9c3;
+    --error: #dc2626;
+    --error-light: #fee2e2;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-script: 'Courier Prime', 'Courier New', monospace;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -26,48 +41,225 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: var(--font-sans);
+    font-family: var(--font-body);
     line-height: 1.6;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
 
+  /* ── Header ── */
   .header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
+    padding: 0 32px;
+    height: 56px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
   }
 
   .header h1 {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 600;
-    color: var(--text);
+    letter-spacing: -0.3px;
   }
 
-  .header .subtitle {
-    color: var(--text-dim);
-    font-size: 13px;
-  }
-
-  .main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0;
-    height: calc(100vh - 57px);
-  }
-
-  .panel {
+  .header-right {
     display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--surface-hover); border-color: var(--border-strong); }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+  .btn-success {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+  }
+
+  .btn-icon {
+    padding: 8px;
+    min-width: 36px;
+    justify-content: center;
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* ── Layout ── */
+  .app {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 56px);
+  }
+
+  /* ── Upload View ── */
+  .upload-view {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+
+  .upload-container {
+    max-width: 640px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .upload-container h2 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+
+  .upload-container p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 32px;
+    line-height: 1.5;
+  }
+
+  .dropzone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+    padding: 64px 40px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: var(--surface);
+    position: relative;
+  }
+
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .dropzone-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    background: var(--accent-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dropzone-icon svg {
+    width: 28px;
+    height: 28px;
+    color: var(--accent);
+  }
+
+  .dropzone h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .dropzone p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 0;
+  }
+
+  .dropzone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-hint {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .paste-option {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .paste-option button {
+    font-size: 14px;
+    padding: 10px 24px;
+  }
+
+  /* ── Editor View ── */
+  .editor-view {
+    flex: 1;
+    display: none;
     flex-direction: column;
     overflow: hidden;
   }
 
-  .panel-header {
+  .editor-view.active {
+    display: flex;
+  }
+
+  .editor-toolbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 10px 16px;
+    padding: 8px 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -75,756 +267,634 @@
     flex-shrink: 0;
   }
 
-  .panel-header h2 {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-dim);
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
 
-  .panel-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0;
-  }
-
-  .left-panel {
-    border-right: 1px solid var(--border);
-  }
-
-  textarea#spec-input {
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    color: var(--text);
-    border: none;
-    padding: 16px;
-    font-family: var(--font-mono);
-    font-size: 13px;
-    line-height: 1.5;
-    resize: none;
-    outline: none;
-    tab-size: 2;
-  }
-
-  .controls {
+  .toolbar-right {
     display: flex;
     align-items: center;
     gap: 8px;
   }
 
-  select, button {
-    font-family: var(--font-sans);
-    font-size: 12px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  select {
-    background: var(--surface2);
-    color: var(--text);
-    border: 1px solid var(--border);
-    padding: 5px 8px;
-  }
-
-  .btn {
-    padding: 6px 14px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
+  .file-name {
+    font-size: 13px;
     font-weight: 500;
+    color: var(--text-secondary);
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .view-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 2px;
+    border: 1px solid var(--border);
+  }
+
+  .view-toggle button {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-radius: 6px;
     transition: all 0.15s;
   }
 
-  .btn:hover { background: var(--border); }
-
-  .btn-primary {
-    background: #238636;
-    border-color: rgba(240,246,252,0.1);
-    color: #fff;
-  }
-  .btn-primary:hover { background: #2ea043; }
-
-  .btn-rewrite {
-    background: #1f6feb;
-    border-color: rgba(240,246,252,0.1);
-    color: #fff;
-  }
-  .btn-rewrite:hover { background: #388bfd; }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .view-toggle button.active {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
   }
 
-  /* Results panel */
-  .results-area {
-    padding: 16px;
-  }
-
-  .status-banner {
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin-bottom: 16px;
-    font-weight: 600;
-    font-size: 14px;
+  .editor-main {
+    flex: 1;
     display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .status-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
-  .status-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
-  .status-red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
-
-  .counts {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 16px;
-    font-size: 13px;
-  }
-
-  .count-badge {
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 12px;
-  }
-
-  .cb-fail { background: rgba(248,81,73,0.2); color: var(--red); }
-  .cb-warn { background: rgba(210,153,34,0.2); color: var(--yellow); }
-  .cb-note { background: rgba(88,166,255,0.2); color: var(--accent); }
-  .cb-pass { background: rgba(63,185,80,0.2); color: var(--green); }
-
-  .result-item {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    margin-bottom: 8px;
     overflow: hidden;
   }
 
-  .result-header {
-    padding: 8px 12px;
+  /* ── Image Panel ── */
+  .image-panel {
+    width: 50%;
+    border-right: 1px solid var(--border);
     display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    background: var(--surface);
+    flex-direction: column;
+    overflow: hidden;
+    background: #f0eeec;
   }
 
-  .result-header:hover { background: var(--surface2); }
+  .image-panel.hidden { display: none; }
 
-  .result-level {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 1px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-  }
-
-  .rl-FAIL { background: var(--red); color: #fff; }
-  .rl-WARN { background: var(--yellow); color: #000; }
-  .rl-NOTE { background: var(--accent); color: #000; }
-  .rl-PASS { background: var(--green); color: #000; }
-
-  .result-rule-id {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--text-dim);
-  }
-
-  .result-message {
+  .image-wrapper {
     flex: 1;
+    overflow: auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .image-wrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ── Text Panel ── */
+  .text-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .text-panel.full-width {
+    width: 100%;
+  }
+
+  .editor-area {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .script-editor {
+    flex: 1;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 32px 40px;
+    font-family: var(--font-script);
+    font-size: 15px;
+    line-height: 1.8;
     color: var(--text);
-  }
-
-  .result-detail {
-    padding: 10px 12px;
-    border-top: 1px solid var(--border);
-    font-size: 12px;
-    background: var(--bg);
-    display: none;
-  }
-
-  .result-detail.open { display: block; }
-
-  .result-detail p {
-    margin-bottom: 6px;
-    color: var(--text-dim);
-  }
-
-  .result-detail .fix {
-    color: var(--green);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 4px 8px;
-    background: rgba(63,185,80,0.1);
-    border-radius: 4px;
-    margin-top: 4px;
-    display: block;
-  }
-
-  .result-detail .evidence {
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    padding: 4px 8px;
-    background: rgba(139,148,158,0.1);
-    border-radius: 4px;
-    margin-top: 4px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 150px;
+    background: var(--surface);
     overflow-y: auto;
   }
 
-  /* Rewrite actions */
-  .rewrite-section {
-    margin-bottom: 20px;
+  .script-editor::placeholder {
+    color: var(--text-muted);
   }
 
-  .rewrite-section h3 {
-    font-size: 14px;
-    margin-bottom: 10px;
-    color: var(--accent);
+  /* ── OCR Progress ── */
+  .ocr-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(4px);
   }
 
-  .action-item {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    margin-bottom: 6px;
-    padding: 10px 12px;
-    background: var(--surface);
-    font-size: 12px;
-  }
-
-  .action-location {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    margin-bottom: 4px;
-  }
-
-  .action-field {
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 4px;
-  }
-
-  .action-old {
-    color: var(--red);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    text-decoration: line-through;
-    opacity: 0.7;
-  }
-
-  .action-new {
-    color: var(--green);
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
-
-  .action-reason {
-    color: var(--text-dim);
-    font-size: 11px;
-    margin-top: 4px;
-    font-style: italic;
-  }
-
-  /* Loading spinner */
-  .spinner {
-    display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .empty-state {
-    text-align: center;
-    padding: 60px 24px;
-    color: var(--text-dim);
-  }
-
-  .empty-state h3 {
-    font-size: 16px;
-    margin-bottom: 8px;
-    color: var(--text);
-  }
-
-  .empty-state p {
-    font-size: 13px;
-    max-width: 400px;
-    margin: 0 auto;
-    line-height: 1.5;
-  }
-
-  /* Tabs for output */
-  .output-tabs {
+  .ocr-overlay.active {
     display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
+  }
+
+  .ocr-modal {
     background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
   }
 
-  .output-tab {
-    padding: 8px 16px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-dim);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    background: none;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    font-family: var(--font-sans);
+  .ocr-modal h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
   }
 
-  .output-tab:hover { color: var(--text); }
-  .output-tab.active { color: var(--text); border-bottom-color: var(--accent); }
+  .ocr-modal p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+  }
 
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* Spec output tab */
-  .spec-output {
+  .progress-bar {
     width: 100%;
-    height: calc(100vh - 160px);
+    height: 6px;
     background: var(--bg);
-    color: var(--text);
-    border: none;
-    padding: 16px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.5;
-    resize: none;
-    outline: none;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 12px;
   }
 
-  /* Template selector */
-  .template-bar {
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 0%;
+  }
+
+  .progress-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Status Bar ── */
+  .status-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 6px 24px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
+    justify-content: space-between;
     font-size: 12px;
-    color: var(--text-dim);
+    color: var(--text-muted);
+    flex-shrink: 0;
   }
 
-  @media (max-width: 900px) {
-    .main { grid-template-columns: 1fr; }
-    .left-panel { border-right: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
+  .word-count { font-variant-numeric: tabular-nums; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--text);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 300;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .header { padding: 0 16px; }
+    .upload-container { padding: 16px; }
+    .dropzone { padding: 40px 24px; }
+    .editor-main { flex-direction: column; }
+    .image-panel { width: 100%; height: 40%; border-right: none; border-bottom: 1px solid var(--border); }
+    .script-editor { padding: 20px; }
+    .editor-toolbar { padding: 8px 16px; flex-wrap: wrap; }
   }
 </style>
 </head>
 <body>
 
+<!-- ── Header ── -->
 <div class="header">
-  <h1>Comics Script Editor</h1>
-  <span class="subtitle">Critic &bull; Rewriter &bull; Studio</span>
+  <div class="header-left">
+    <div class="logo">S</div>
+    <h1>Script Editor</h1>
+  </div>
+  <div class="header-right">
+    <button class="btn" id="btn-new" style="display:none" onclick="resetApp()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New
+    </button>
+    <button class="btn" id="btn-export" style="display:none" onclick="exportText()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export
+    </button>
+  </div>
 </div>
 
-<div class="main">
-  <!-- LEFT: Input -->
-  <div class="panel left-panel">
-    <div class="panel-header">
-      <h2>Script Spec (JSON)</h2>
-      <div class="controls">
-        <select id="template-select" title="Load a sample spec">
-          <option value="">Load template...</option>
-          <option value="flawed">Flawed Sample (4 pages)</option>
-          <option value="minimal">Minimal Spec</option>
-          <option value="studio">Studio Seed</option>
-        </select>
-      </div>
-    </div>
-    <div class="panel-body">
-      <textarea id="spec-input" spellcheck="false" placeholder='Paste your comic script spec JSON here...
+<div class="app">
+  <!-- ── Upload View ── -->
+  <div class="upload-view" id="upload-view">
+    <div class="upload-container">
+      <h2>Upload your script</h2>
+      <p>Drop an image of your handwritten or printed script and we'll read it for you. Then edit, refine, and export.</p>
 
-{
-  "premise": "...",
-  "protagonist": "...",
-  "pages": [
-    {
-      "page_no": 1,
-      "panels": [
-        { "art": "...", "text": [...] }
-      ]
-    }
-  ]
-}'></textarea>
-    </div>
-    <div class="panel-header" style="border-top: 1px solid var(--border); border-bottom: none;">
-      <div class="controls">
-        <select id="mode-select">
-          <option value="critic">Critic</option>
-          <option value="rewrite" selected>Rewrite</option>
-          <option value="studio">Studio</option>
-        </select>
-        <select id="gate-select">
-          <option value="P0">Gate: P0</option>
-          <option value="P1" selected>Gate: P1</option>
-          <option value="P2">Gate: P2</option>
-          <option value="P4">Gate: P4</option>
-          <option value="P7">Gate: P7 (all)</option>
-        </select>
+      <div class="dropzone" id="dropzone">
+        <div class="dropzone-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+          </svg>
+        </div>
+        <h3>Drop image here or click to browse</h3>
+        <p>Supports JPG, PNG, TIFF, BMP, WebP</p>
+        <input type="file" id="file-input" accept="image/*">
       </div>
-      <div class="controls">
-        <button class="btn btn-rewrite" id="btn-run" onclick="runAnalysis()">
-          Run Editor
+
+      <p class="upload-hint">Your images are processed entirely in your browser. Nothing is uploaded to any server.</p>
+
+      <div class="paste-option">
+        <button class="btn btn-primary" onclick="startBlankEditor()">
+          Or start with a blank editor
         </button>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT: Output -->
-  <div class="panel">
-    <div class="output-tabs" id="output-tabs">
-      <button class="output-tab active" data-tab="results">Results</button>
-      <button class="output-tab" data-tab="actions">Rewrites</button>
-      <button class="output-tab" data-tab="spec-out">Fixed Spec</button>
-      <button class="output-tab" data-tab="raw">Raw JSON</button>
+  <!-- ── Editor View ── -->
+  <div class="editor-view" id="editor-view">
+    <div class="editor-toolbar">
+      <div class="toolbar-left">
+        <span class="file-name" id="file-name">Untitled Script</span>
+      </div>
+      <div class="toolbar-right">
+        <div class="view-toggle" id="view-toggle">
+          <button class="active" data-view="split" onclick="setView('split')">Split</button>
+          <button data-view="image" onclick="setView('image')">Image</button>
+          <button data-view="text" onclick="setView('text')">Text</button>
+        </div>
+        <button class="btn" onclick="rerunOCR()" id="btn-reocr" title="Re-run OCR on this image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+          Re-scan
+        </button>
+        <button class="btn btn-primary" onclick="copyText()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy
+        </button>
+      </div>
     </div>
-    <div class="panel-body">
-      <!-- Results tab -->
-      <div class="tab-content active" id="tab-results">
-        <div class="empty-state" id="empty-state">
-          <h3>Paste a script spec and hit Run</h3>
-          <p>The editor will analyze your comic script JSON against 25+ writing rules, then rewrite the weak spots with real content.</p>
-        </div>
-        <div class="results-area" id="results-area" style="display:none;"></div>
-      </div>
-      <!-- Rewrite actions tab -->
-      <div class="tab-content" id="tab-actions">
-        <div class="results-area" id="actions-area">
-          <div class="empty-state">
-            <p>Run in Rewrite mode to see changes.</p>
-          </div>
+
+    <div class="editor-main">
+      <!-- Image Side -->
+      <div class="image-panel" id="image-panel">
+        <div class="image-wrapper">
+          <img id="preview-img" src="" alt="Uploaded script">
         </div>
       </div>
-      <!-- Fixed spec tab -->
-      <div class="tab-content" id="tab-spec-out">
-        <textarea class="spec-output" id="spec-output" readonly placeholder="The rewritten spec will appear here..."></textarea>
+
+      <!-- Text Side -->
+      <div class="text-panel" id="text-panel">
+        <div class="editor-area">
+          <textarea
+            class="script-editor"
+            id="script-editor"
+            placeholder="Your script text will appear here after OCR processing...
+
+You can also type or paste directly."
+            spellcheck="true"
+          ></textarea>
+        </div>
       </div>
-      <!-- Raw JSON tab -->
-      <div class="tab-content" id="tab-raw">
-        <textarea class="spec-output" id="raw-output" readonly placeholder="Raw API response will appear here..."></textarea>
-      </div>
+    </div>
+
+    <div class="status-bar">
+      <span class="word-count" id="word-count">0 words</span>
+      <span id="status-text">Ready</span>
     </div>
   </div>
 </div>
 
+<!-- ── OCR Progress Overlay ── -->
+<div class="ocr-overlay" id="ocr-overlay">
+  <div class="ocr-modal">
+    <h3>Reading your script</h3>
+    <p id="ocr-status-text">Initializing OCR engine...</p>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <span class="progress-text" id="progress-text">0%</span>
+  </div>
+</div>
+
+<!-- ── Toast ── -->
+<div class="toast" id="toast"></div>
+
 <script>
-// Templates
-const TEMPLATES = {
-  flawed: {
-    title: "The Last Courier",
-    medium_target: "comics",
-    genre: "noir sci-fi",
-    tone: "tense",
-    premise: "Mara delivers packages in a flooded megacity",
-    protagonist: "Mara",
-    protagonist_goal: "deliver the stolen data core before dawn",
-    stakes: "bad things happen",
-    character_change: "",
-    target_emotion: "dread",
-    flaws: ["control issues"],
-    obstacles: ["a corrupt checkpoint"],
-    beats: [
-      {name: "Opening", change: "", new_problem: "", cost: ""},
-      {name: "Complication", change: "things get worse", new_problem: "the cops show up", cost: ""},
-      {name: "Escalation", change: "", new_problem: "", cost: ""},
-      {name: "Climax fight scene", change: "", new_problem: "", cost: ""}
-    ],
-    character_reveals: [{pressure: "she's cornered", choice: "", cost: ""}],
-    characters: [{role: "protagonist", name: "Mara"}],
-    pages: [
-      {page_no: 1, page_type: "normal", panels: [
-        {art: "Wide shot of flooded megacity at night.", text: [{type: "caption", value: "Well, basically, I mean, it was just really kind of a very normal night in the Zone. Mara moved through the flooded streets, actually thinking about all the things she had to do, you know, sort of wondering if mah luck would hold."}]},
-        {art: "", text: [{type: "balloon", value: "Mara: I gotta get muh package through before dawn or we're all done for, you know what I mean?"}]},
-        {art: "Close-up of Mara's face.", text: []},
-        {art: "Medium shot of Mara walking.", text: [{type: "balloon", value: "Ah think we should go."}]}
-      ]},
-      {page_no: 2, page_type: "normal", panels: [
-        {art: "Mara at the checkpoint.", text: [{type: "balloon", value: "Guard: Papers. Now."}]},
-        {art: "Mara reaching into her jacket.", text: [{type: "balloon", value: "Mara: Here. Everything's in order."}]},
-        {art: "", text: [{type: "balloon", value: "Guard: This expired yesterday."}]},
-        {art: "Wide shot of the checkpoint.", text: [{type: "balloon", value: "Mara: That's impossible. Check again."}]}
-      ]},
-      {page_no: 3, page_type: "normal", panels: [
-        {art: "Mara running through alleys.", text: [{type: "caption", value: "She ran."}]},
-        {art: "Overhead shot of pursuit.", silent_intent: "The chase is on.", text: []},
-        {art: "Mara ducking into a doorway.", text: [{type: "balloon", value: "Mara: Come on, come on..."}]},
-        {art: "The door slams shut.", text: [{type: "sfx", value: "SLAM"}]}
-      ]},
-      {page_no: 4, page_type: "normal", panels: [
-        {art: "Interior safe house. Dim light.", text: [{type: "caption", value: "Safe. For now."}]},
-        {art: "Mara examines the data core.", text: [{type: "balloon", value: "Mara: This better be worth it."}]},
-        {art: "Close-up of the data core glowing.", silent_intent: "The core pulses with stolen secrets.", text: []},
-        {art: "Mara looks out the window.", text: [{type: "caption", value: "Dawn in three hours."}]}
-      ]}
-    ]
-  },
-  minimal: {
-    premise: "A courier must deliver a package across a dangerous city",
-    protagonist: "Alex",
-    protagonist_goal: "deliver the package before the deadline",
-    stakes: "",
-    pages: [
-      {page_no: 1, page_type: "normal", panels: [
-        {art: "Wide establishing shot of the city.", text: [{type: "caption", value: "The city never sleeps."}]},
-        {art: "Alex receives the package.", text: [{type: "balloon", value: "Alex: I'll get it there."}]},
-        {art: "Alex heads out the door.", silent_intent: "Determination.", text: []}
-      ]}
-    ]
-  },
-  studio: {
-    genre: "noir sci-fi",
-    tone: "tense, propulsive",
-    page_count: 22,
-    hook: "memory theft",
-    setting: "flooded megacity where data is currency",
-    rng_seed: 42
-  }
-};
+// ── State ──
+let currentFile = null;
+let currentView = 'split';
 
-// Tab switching
-document.querySelectorAll('.output-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
-  });
+// ── Elements ──
+const $uploadView = document.getElementById('upload-view');
+const $editorView = document.getElementById('editor-view');
+const $dropzone = document.getElementById('dropzone');
+const $fileInput = document.getElementById('file-input');
+const $editor = document.getElementById('script-editor');
+const $previewImg = document.getElementById('preview-img');
+const $imagePanel = document.getElementById('image-panel');
+const $textPanel = document.getElementById('text-panel');
+const $ocrOverlay = document.getElementById('ocr-overlay');
+const $progressFill = document.getElementById('progress-fill');
+const $progressText = document.getElementById('progress-text');
+const $ocrStatusText = document.getElementById('ocr-status-text');
+const $wordCount = document.getElementById('word-count');
+const $statusText = document.getElementById('status-text');
+const $fileName = document.getElementById('file-name');
+const $btnNew = document.getElementById('btn-new');
+const $btnExport = document.getElementById('btn-export');
+const $btnReocr = document.getElementById('btn-reocr');
+const $viewToggle = document.getElementById('view-toggle');
+
+// ── File Handling ──
+$fileInput.addEventListener('change', (e) => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
 });
 
-// Template loading
-document.getElementById('template-select').addEventListener('change', function() {
-  const key = this.value;
-  if (!key || !TEMPLATES[key]) return;
-  document.getElementById('spec-input').value = JSON.stringify(TEMPLATES[key], null, 2);
-  // Auto-set mode for studio template
-  if (key === 'studio') {
-    document.getElementById('mode-select').value = 'studio';
-  } else {
-    document.getElementById('mode-select').value = 'rewrite';
-  }
-  this.value = '';
+// Drag and drop
+$dropzone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  $dropzone.classList.add('dragover');
 });
 
-// Update button text based on mode
-document.getElementById('mode-select').addEventListener('change', function() {
-  const btn = document.getElementById('btn-run');
-  const labels = { critic: 'Analyze', rewrite: 'Rewrite', studio: 'Generate' };
-  btn.textContent = labels[this.value] || 'Run';
-  btn.className = 'btn ' + (this.value === 'rewrite' ? 'btn-rewrite' : 'btn-primary');
+$dropzone.addEventListener('dragleave', () => {
+  $dropzone.classList.remove('dragover');
 });
 
-// Main action
-async function runAnalysis() {
-  const btn = document.getElementById('btn-run');
-  const input = document.getElementById('spec-input').value.trim();
-  const mode = document.getElementById('mode-select').value;
-  const gate = document.getElementById('gate-select').value;
+$dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  $dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
 
-  if (!input) {
-    alert('Paste a script spec JSON in the left panel first.');
-    return;
-  }
-
-  let parsed;
-  try {
-    parsed = JSON.parse(input);
-  } catch(e) {
-    alert('Invalid JSON: ' + e.message);
-    return;
-  }
-
-  // Build request
-  const body = { mode, gate, full_report: true };
-  if (mode === 'studio') {
-    body.seed = parsed;
-    body.n = parsed.n || 3;
-  } else {
-    body.spec = parsed;
-    if (mode === 'rewrite') {
-      body.rewrite_passes = 2;
-    }
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Running...';
-
-  try {
-    const resp = await fetch('/api/analyze', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-    const data = await resp.json();
-
-    if (data.error) {
-      alert('Error: ' + data.error);
+// Paste images from clipboard
+document.addEventListener('paste', (e) => {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      e.preventDefault();
+      handleFile(item.getAsFile());
       return;
     }
-
-    renderResults(data);
-    renderActions(data);
-    renderSpecOutput(data);
-    document.getElementById('raw-output').value = JSON.stringify(data, null, 2);
-
-    // Show results tab, or actions tab for rewrite mode
-    document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    if (mode === 'rewrite' && data.rewrite_actions && data.rewrite_actions.length > 0) {
-      document.querySelector('[data-tab="actions"]').classList.add('active');
-      document.getElementById('tab-actions').classList.add('active');
-    } else {
-      document.querySelector('[data-tab="results"]').classList.add('active');
-      document.getElementById('tab-results').classList.add('active');
-    }
-  } catch(e) {
-    alert('Request failed: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    const labels = { critic: 'Analyze', rewrite: 'Rewrite', studio: 'Generate' };
-    btn.textContent = labels[mode] || 'Run';
   }
-}
+});
 
-function renderResults(data) {
-  const area = document.getElementById('results-area');
-  const empty = document.getElementById('empty-state');
-  empty.style.display = 'none';
-  area.style.display = 'block';
-
-  const summary = data.summary || {};
-  const results = data.results || [];
-  const status = summary.status || 'red';
-  const counts = summary.counts || {};
-  const gate = data.gate || {};
-
-  let html = '';
-
-  // Status banner
-  const statusText = {
-    green: 'PASS — Script meets all gates',
-    yellow: 'WARNINGS — Script has issues to address',
-    red: 'FAIL — Script has critical problems'
-  };
-  html += `<div class="status-banner status-${status}">${statusText[status] || status.toUpperCase()}</div>`;
-
-  // Rewrite summary if applicable
-  if (data.mode === 'rewrite' && data.total_rewrites > 0) {
-    html += `<div class="status-banner" style="background:rgba(31,111,235,0.15);color:var(--accent);border:1px solid rgba(31,111,235,0.3);">
-      REWRITE: ${data.total_rewrites} changes across ${data.rewrite_passes} pass${data.rewrite_passes > 1 ? 'es' : ''}
-    </div>`;
-  }
-
-  // Counts
-  html += '<div class="counts">';
-  if (counts.FAIL) html += `<span class="count-badge cb-fail">${counts.FAIL} FAIL</span>`;
-  if (counts.WARN) html += `<span class="count-badge cb-warn">${counts.WARN} WARN</span>`;
-  if (counts.NOTE) html += `<span class="count-badge cb-note">${counts.NOTE} NOTE</span>`;
-  if (counts.PASS) html += `<span class="count-badge cb-pass">${counts.PASS} PASS</span>`;
-  html += '</div>';
-
-  // Gate
-  if (gate.message) {
-    html += `<div style="margin-bottom:16px;padding:8px 12px;background:rgba(248,81,73,0.1);border:1px solid rgba(248,81,73,0.2);border-radius:6px;font-size:12px;font-family:var(--font-mono);color:var(--red);white-space:pre-wrap;">${escHtml(gate.message)}</div>`;
-  }
-
-  // Results list
-  for (const r of results) {
-    const level = r.level || 'PASS';
-    const expanded = (level === 'FAIL' || level === 'WARN');
-    html += `<div class="result-item">
-      <div class="result-header" onclick="this.nextElementSibling.classList.toggle('open')">
-        <span class="result-level rl-${level}">${level}</span>
-        <span class="result-rule-id">${escHtml(r.rule_id)}</span>
-        <span class="result-message">${escHtml(r.message)}</span>
-      </div>
-      <div class="result-detail ${expanded ? 'open' : ''}">
-        ${r.location ? `<p>Location: <code>${escHtml(r.location)}</code></p>` : ''}
-        ${(r.fixes || []).map(f => `<span class="fix">FIX: ${escHtml(f)}</span>`).join('')}
-        ${r.evidence && Object.keys(r.evidence).length ? `<div class="evidence">${escHtml(JSON.stringify(r.evidence, null, 2))}</div>` : ''}
-      </div>
-    </div>`;
-  }
-
-  // Studio mode: show generated specs
-  if (data.mode === 'studio' && data.generated_specs) {
-    html += '<h3 style="margin:20px 0 10px;color:var(--accent);">Generated Ideas</h3>';
-    for (const [i, item] of data.generated_specs.entries()) {
-      const spec = item.spec || {};
-      const ok = item.gate?.ok;
-      html += `<div class="action-item">
-        <div class="action-field">${i+1}. ${escHtml(spec.title || 'Untitled')}</div>
-        <div style="font-size:12px;color:var(--text-dim);margin:4px 0;">${escHtml(spec.premise || '')}</div>
-        <div style="font-size:11px;">
-          <span class="count-badge ${ok ? 'cb-pass' : 'cb-fail'}">${ok ? 'PASS' : 'FAIL'}</span>
-          Status: ${item.summary?.status || '?'}
-        </div>
-      </div>`;
-    }
-  }
-
-  area.innerHTML = html;
-}
-
-function renderActions(data) {
-  const area = document.getElementById('actions-area');
-  const actions = data.rewrite_actions || [];
-
-  if (!actions.length) {
-    area.innerHTML = '<div class="empty-state"><p>No rewrite actions. Run in Rewrite mode to see changes.</p></div>';
+function handleFile(file) {
+  if (!file.type.startsWith('image/')) {
+    showToast('Please upload an image file (JPG, PNG, etc.)');
     return;
   }
 
-  let html = `<div class="rewrite-section">
-    <h3>${actions.length} Rewrite${actions.length !== 1 ? 's' : ''} Applied</h3>`;
-
-  for (const a of actions) {
-    html += `<div class="action-item">
-      <div class="action-location">${escHtml(a.location)} &rarr; ${escHtml(a.field)}</div>
-      ${a.old_value ? `<div class="action-old">${escHtml(a.old_value)}</div>` : ''}
-      <div class="action-new">${escHtml(a.new_value)}</div>
-      <div class="action-reason">${escHtml(a.reason)}</div>
-    </div>`;
-  }
-
-  html += '</div>';
-  area.innerHTML = html;
+  currentFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    $previewImg.src = e.target.result;
+    $fileName.textContent = file.name;
+    switchToEditor(true);
+    runOCR(e.target.result);
+  };
+  reader.readAsDataURL(file);
 }
 
-function renderSpecOutput(data) {
-  const el = document.getElementById('spec-output');
-  if (data.spec) {
-    el.value = JSON.stringify(data.spec, null, 2);
-  } else if (data.generated_specs && data.generated_specs.length) {
-    el.value = JSON.stringify(data.generated_specs.map(g => g.spec), null, 2);
+function startBlankEditor() {
+  currentFile = null;
+  $fileName.textContent = 'Untitled Script';
+  switchToEditor(false);
+  $editor.focus();
+}
+
+function switchToEditor(hasImage) {
+  $uploadView.style.display = 'none';
+  $editorView.classList.add('active');
+  $btnNew.style.display = '';
+  $btnExport.style.display = '';
+
+  if (hasImage) {
+    setView('split');
+    $viewToggle.style.display = '';
+    $btnReocr.style.display = '';
   } else {
-    el.value = '(No spec output for this mode)';
+    setView('text');
+    $viewToggle.style.display = 'none';
+    $btnReocr.style.display = 'none';
   }
 }
 
-function escHtml(s) {
-  const div = document.createElement('div');
-  div.textContent = s || '';
-  return div.innerHTML;
-}
-</script>
+// ── OCR ──
+async function runOCR(imageSrc) {
+  $ocrOverlay.classList.add('active');
+  $progressFill.style.width = '0%';
+  $progressText.textContent = '0%';
+  $ocrStatusText.textContent = 'Initializing OCR engine...';
 
+  try {
+    const result = await Tesseract.recognize(imageSrc, 'eng', {
+      logger: (m) => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round(m.progress * 100);
+          $progressFill.style.width = pct + '%';
+          $progressText.textContent = pct + '%';
+          $ocrStatusText.textContent = 'Reading your script...';
+        } else if (m.status === 'loading language traineddata') {
+          $ocrStatusText.textContent = 'Loading language data...';
+          const pct = Math.round(m.progress * 100);
+          $progressFill.style.width = (pct * 0.3) + '%';
+          $progressText.textContent = Math.round(pct * 0.3) + '%';
+        } else if (m.status === 'initializing api') {
+          $ocrStatusText.textContent = 'Preparing OCR engine...';
+        }
+      }
+    });
+
+    // Clean up the OCR text
+    let text = result.data.text || '';
+    text = cleanOCRText(text);
+
+    $editor.value = text;
+    updateWordCount();
+    $statusText.textContent = 'OCR complete — review and edit your script';
+    $progressFill.style.width = '100%';
+    $progressText.textContent = '100%';
+    $ocrStatusText.textContent = 'Done!';
+
+    setTimeout(() => {
+      $ocrOverlay.classList.remove('active');
+      $editor.focus();
+      showToast('Script read successfully — review and edit below');
+    }, 500);
+
+  } catch (err) {
+    console.error('OCR Error:', err);
+    $ocrOverlay.classList.remove('active');
+    $statusText.textContent = 'OCR failed — you can type your script manually';
+    showToast('OCR failed: ' + err.message);
+  }
+}
+
+function cleanOCRText(text) {
+  // Remove excessive blank lines (keep max 2)
+  text = text.replace(/\n{4,}/g, '\n\n\n');
+  // Remove trailing spaces on each line
+  text = text.replace(/[ \t]+$/gm, '');
+  // Remove leading/trailing whitespace from the whole text
+  text = text.trim();
+  return text;
+}
+
+async function rerunOCR() {
+  if (!$previewImg.src) return;
+  $editor.value = '';
+  runOCR($previewImg.src);
+}
+
+// ── View Modes ──
+function setView(view) {
+  currentView = view;
+
+  // Update toggle buttons
+  $viewToggle.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+
+  if (view === 'split') {
+    $imagePanel.classList.remove('hidden');
+    $imagePanel.style.width = '50%';
+    $textPanel.classList.remove('full-width');
+  } else if (view === 'image') {
+    $imagePanel.classList.remove('hidden');
+    $imagePanel.style.width = '100%';
+    $textPanel.classList.add('full-width');
+    $textPanel.style.display = 'none';
+    setTimeout(() => { $textPanel.style.display = ''; }, 0);
+    $textPanel.style.display = 'none';
+  } else {
+    $imagePanel.classList.add('hidden');
+    $textPanel.classList.add('full-width');
+    $textPanel.style.display = '';
+  }
+
+  // Fix: properly handle image-only view
+  if (view === 'image') {
+    $imagePanel.style.width = '100%';
+    $textPanel.style.display = 'none';
+  } else if (view === 'text') {
+    $imagePanel.classList.add('hidden');
+    $textPanel.style.display = '';
+  } else {
+    $imagePanel.classList.remove('hidden');
+    $imagePanel.style.width = '50%';
+    $textPanel.style.display = '';
+  }
+}
+
+// ── Word Count ──
+$editor.addEventListener('input', updateWordCount);
+
+function updateWordCount() {
+  const text = $editor.value.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  const chars = text.length;
+  $wordCount.textContent = `${words} word${words !== 1 ? 's' : ''} · ${chars} characters`;
+}
+
+// ── Copy / Export ──
+function copyText() {
+  const text = $editor.value;
+  if (!text.trim()) {
+    showToast('Nothing to copy');
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copied to clipboard');
+  }).catch(() => {
+    // Fallback
+    $editor.select();
+    document.execCommand('copy');
+    showToast('Copied to clipboard');
+  });
+}
+
+function exportText() {
+  const text = $editor.value;
+  if (!text.trim()) {
+    showToast('Nothing to export');
+    return;
+  }
+
+  const name = ($fileName.textContent || 'script').replace(/\.[^.]+$/, '') + '.txt';
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported as ' + name);
+}
+
+// ── Reset ──
+function resetApp() {
+  currentFile = null;
+  $editor.value = '';
+  $previewImg.src = '';
+  $fileInput.value = '';
+  $editorView.classList.remove('active');
+  $uploadView.style.display = '';
+  $btnNew.style.display = 'none';
+  $btnExport.style.display = 'none';
+  $statusText.textContent = 'Ready';
+  updateWordCount();
+}
+
+// ── Toast ──
+function showToast(message) {
+  const $toast = document.getElementById('toast');
+  $toast.textContent = message;
+  $toast.classList.add('show');
+  setTimeout(() => $toast.classList.remove('show'), 3000);
+}
+
+// ── Init ──
+updateWordCount();
+</script>
 </body>
 </html>
