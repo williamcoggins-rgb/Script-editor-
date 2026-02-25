@@ -1,0 +1,266 @@
+{
+  "title": "The Last Courier",
+  "medium_target": "comics",
+  "genre": "noir sci-fi",
+  "tone": "tense",
+  "premise": "Mara delivers packages in a flooded megacity",
+  "protagonist": "Mara",
+  "protagonist_goal": "deliver the stolen data core before dawn",
+  "stakes": "If Mara fails to deliver the stolen data core before dawn, the opposition wins by default. Someone Mara loves loses their freedom. The city's power shifts permanently. The deadline is real: miss it and the job is gone, the identity is rewritten, and the mission dies with Mara's reputation.",
+  "character_change": "",
+  "target_emotion": "dread",
+  "flaws": [
+    "control issues"
+  ],
+  "obstacles": [
+    "a corrupt checkpoint"
+  ],
+  "beats": [
+    {
+      "name": "Opening",
+      "change": "A door closed permanently. The story can't go backward.",
+      "new_problem": "the opposition adapts. The next obstacle is harder because of what Mara just did.",
+      "cost": "The plan worked -- but the price was a piece of Mara's self-image."
+    },
+    {
+      "name": "Complication",
+      "change": "things get worse",
+      "new_problem": "the cops show up",
+      "cost": ""
+    },
+    {
+      "name": "Escalation",
+      "change": "Mara's status shifts: what was safe is now dangerous.",
+      "new_problem": "The solution created a new enemy: someone who was neutral now opposes Mara.",
+      "cost": "An ally's trust cracks. The relationship shifts."
+    },
+    {
+      "name": "Climax fight scene",
+      "change": "A door closed permanently. The story can't go backward.",
+      "new_problem": "The solution created a new enemy: someone who was neutral now opposes Mara.",
+      "cost": "Mara loses a resource they can't replace."
+    }
+  ],
+  "character_reveals": [
+    {
+      "pressure": "she's cornered",
+      "choice": "",
+      "cost": ""
+    }
+  ],
+  "characters": [
+    {
+      "role": "protagonist",
+      "name": "Mara"
+    }
+  ],
+  "pages": [
+    {
+      "page_no": 1,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Wide shot of flooded megacity at night.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "It was a normal night in the Zone Mara moved through --"
+            },
+            {
+              "type": "caption",
+              "value": "The flooded streets thinking about all the things she had to do you know"
+            }
+          ]
+        },
+        {
+          "art": "MEDIUM SHOT -- Mara in the city. Beat: story beat. Visual must support: \"Mara I gotta get muh package...\". Keep background active.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Mara: I gotta get my package through before dawn or we're all done for, what I mean?"
+            }
+          ]
+        },
+        {
+          "art": "Close-up of Mara's face.",
+          "text": [],
+          "silent_intent": "Silent beat: Mara's body language carries the emotion. The image does the work the words can't."
+        },
+        {
+          "art": "Medium shot of Mara walking.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "I think we should go."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "page_no": 2,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Mara at the checkpoint.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Guard: Papers. Now."
+            }
+          ]
+        },
+        {
+          "art": "Mara reaching into her jacket.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Mara: Here. Everything's in order."
+            }
+          ]
+        },
+        {
+          "art": "WIDE SHOT -- Mara in the city. Beat: story beat. Visual must support: \"Guard: This expired yesterday.\". Keep background active.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Guard: This expired yesterday."
+            }
+          ]
+        },
+        {
+          "art": "Wide shot of the checkpoint.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Mara: That's impossible. Check again."
+            }
+          ]
+        }
+      ],
+      "page_turn_reveal": true,
+      "reveal_label": "REVEAL: The truth about the opposition's plan lands. Mara sees the real cost."
+    },
+    {
+      "page_no": 3,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Mara running through alleys.",
+          "text": [
+            {
+              "type": "caption",
+              "value": "She ran."
+            }
+          ]
+        },
+        {
+          "art": "Overhead shot of pursuit.",
+          "silent_intent": "The chase is on.",
+          "text": []
+        },
+        {
+          "art": "Mara ducking into a doorway.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Mara: Come on, come on..."
+            }
+          ]
+        },
+        {
+          "art": "The door slams shut.",
+          "text": [
+            {
+              "type": "sfx",
+              "value": "SLAM"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "page_no": 4,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Interior safe house. Dim light.",
+          "text": [
+            {
+              "type": "caption",
+              "value": "Safe. For now."
+            }
+          ]
+        },
+        {
+          "art": "Mara examines the data core.",
+          "text": [
+            {
+              "type": "balloon",
+              "value": "Mara: This better be worth it."
+            }
+          ]
+        },
+        {
+          "art": "Close-up of the data core glowing.",
+          "silent_intent": "The core pulses with stolen secrets.",
+          "text": []
+        },
+        {
+          "art": "Mara looks out the window.",
+          "text": [
+            {
+              "type": "caption",
+              "value": "Dawn in three hours."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "PAGE_1",
+      "purpose": "",
+      "entry_hook": "CAPTION: Mara steps into the room knowing one thing: deliver the stolen data core before dawn has a new price.",
+      "exit_hook": "VISUAL: A door opens on something worse. Mara steps through anyway.",
+      "next_scene_id": null,
+      "page_no": 1,
+      "outcome": "Value shift: Mara's options narrow. Trust is damaged. The cost went up.",
+      "conflict": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls."
+    },
+    {
+      "scene_id": "PAGE_2",
+      "purpose": "",
+      "entry_hook": "CAPTION: The beat hits before Mara is ready. It always does.",
+      "exit_hook": "CAPTION: Mara realizes too late: the opposition was already ahead.",
+      "next_scene_id": null,
+      "page_no": 2,
+      "outcome": "Escalation: what started as  became a crisis. Next scene inherits the pressure.",
+      "conflict": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls."
+    },
+    {
+      "scene_id": "PAGE_3",
+      "purpose": "",
+      "entry_hook": "CAPTION: After what just happened, Mara has no choice but to move forward.",
+      "exit_hook": "VISUAL: A door opens on something worse. Mara steps through anyway.",
+      "next_scene_id": null,
+      "page_no": 3,
+      "outcome": "Commitment: Mara chose a path. No reversal possible. Stakes crystallized.",
+      "conflict": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls."
+    },
+    {
+      "scene_id": "PAGE_4",
+      "purpose": "",
+      "entry_hook": "CAPTION: the city. The air changed three minutes ago and Mara can feel it.",
+      "exit_hook": "CAPTION: Mara realizes too late: the opposition was already ahead.",
+      "next_scene_id": null,
+      "page_no": 4,
+      "outcome": "Escalation: what started as  became a crisis. Next scene inherits the pressure.",
+      "conflict": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls."
+    }
+  ],
+  "central_conflict": "Mara vs the opposition: a fight over who controls the truth, the resources, and the outcome of deliver the stolen data core before dawn. The deeper conflict is internal: Mara's control issues is the weapon the opposition exploits.",
+  "central_conflict_type": "external + internal",
+  "protagonist_need": "Learn to overcome control issues by choosing vulnerability over control."
+}

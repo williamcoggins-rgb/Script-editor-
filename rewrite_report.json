@@ -1,0 +1,659 @@
+{
+  "mode": "rewrite",
+  "rewrite_passes": 2,
+  "total_rewrites": 32,
+  "rewrite_actions": [
+    {
+      "location": "page:1 panel:2",
+      "field": "art",
+      "old_value": "(empty)",
+      "new_value": "MEDIUM SHOT -- Mara in the city. Beat: story beat. Visual must support: \"Mara I gotta get muh package...\". Keep background active.",
+      "reason": "Panel had no art direction; generated from scene context."
+    },
+    {
+      "location": "page:2 panel:3",
+      "field": "art",
+      "old_value": "(empty)",
+      "new_value": "WIDE SHOT -- Mara in the city. Beat: story beat. Visual must support: \"Guard: This expired yesterday.\". Keep background active.",
+      "reason": "Panel had no art direction; generated from scene context."
+    },
+    {
+      "location": "page:1 panel:3",
+      "field": "silent_intent",
+      "old_value": "(empty)",
+      "new_value": "Silent beat: Mara's body language carries the emotion. The image does the work the words can't.",
+      "reason": "Art-only panel needed silent_intent for letterer/artist clarity."
+    },
+    {
+      "location": "scene:PAGE_1",
+      "field": "entry_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: Mara steps into the room knowing one thing: deliver the stolen data core before dawn has a new price.",
+      "reason": "Scene lacked entry hook; generated from purpose 'beat' and story context."
+    },
+    {
+      "location": "scene:PAGE_2",
+      "field": "entry_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: The beat hits before Mara is ready. It always does.",
+      "reason": "Scene lacked entry hook; generated from purpose 'beat' and story context."
+    },
+    {
+      "location": "scene:PAGE_3",
+      "field": "entry_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: After what just happened, Mara has no choice but to move forward.",
+      "reason": "Scene lacked entry hook; generated from purpose 'beat' and story context."
+    },
+    {
+      "location": "scene:PAGE_4",
+      "field": "entry_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: the city. The air changed three minutes ago and Mara can feel it.",
+      "reason": "Scene lacked entry hook; generated from purpose 'beat' and story context."
+    },
+    {
+      "location": "scene:PAGE_1",
+      "field": "exit_hook",
+      "old_value": "(empty)",
+      "new_value": "VISUAL: A door opens on something worse. Mara steps through anyway.",
+      "reason": "Scene lacked exit hook / propulsion into next scene."
+    },
+    {
+      "location": "scene:PAGE_2",
+      "field": "exit_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: Mara realizes too late: the opposition was already ahead.",
+      "reason": "Scene lacked exit hook / propulsion into next scene."
+    },
+    {
+      "location": "scene:PAGE_3",
+      "field": "exit_hook",
+      "old_value": "(empty)",
+      "new_value": "VISUAL: A door opens on something worse. Mara steps through anyway.",
+      "reason": "Scene lacked exit hook / propulsion into next scene."
+    },
+    {
+      "location": "scene:PAGE_4",
+      "field": "exit_hook",
+      "old_value": "(empty)",
+      "new_value": "CAPTION: Mara realizes too late: the opposition was already ahead.",
+      "reason": "Scene lacked exit hook / propulsion into next scene."
+    },
+    {
+      "location": "scene:PAGE_1",
+      "field": "outcome",
+      "old_value": "(empty)",
+      "new_value": "Value shift: Mara's options narrow. Trust is damaged. The cost went up.",
+      "reason": "Scene lacked outcome direction."
+    },
+    {
+      "location": "scene:PAGE_2",
+      "field": "outcome",
+      "old_value": "(empty)",
+      "new_value": "Escalation: what started as  became a crisis. Next scene inherits the pressure.",
+      "reason": "Scene lacked outcome direction."
+    },
+    {
+      "location": "scene:PAGE_3",
+      "field": "outcome",
+      "old_value": "(empty)",
+      "new_value": "Commitment: Mara chose a path. No reversal possible. Stakes crystallized.",
+      "reason": "Scene lacked outcome direction."
+    },
+    {
+      "location": "scene:PAGE_4",
+      "field": "outcome",
+      "old_value": "(empty)",
+      "new_value": "Escalation: what started as  became a crisis. Next scene inherits the pressure.",
+      "reason": "Scene lacked outcome direction."
+    },
+    {
+      "location": "scene:PAGE_1",
+      "field": "conflict",
+      "old_value": "(empty)",
+      "new_value": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls.",
+      "reason": "Scene had no explicit conflict."
+    },
+    {
+      "location": "scene:PAGE_2",
+      "field": "conflict",
+      "old_value": "(empty)",
+      "new_value": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls.",
+      "reason": "Scene had no explicit conflict."
+    },
+    {
+      "location": "scene:PAGE_3",
+      "field": "conflict",
+      "old_value": "(empty)",
+      "new_value": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls.",
+      "reason": "Scene had no explicit conflict."
+    },
+    {
+      "location": "scene:PAGE_4",
+      "field": "conflict",
+      "old_value": "(empty)",
+      "new_value": "Mara vs a corrupt checkpoint -- the opposition benefits if Mara stalls.",
+      "reason": "Scene had no explicit conflict."
+    },
+    {
+      "location": "spec",
+      "field": "stakes",
+      "old_value": "bad things happen",
+      "new_value": "If Mara fails to deliver the stolen data core before dawn, the opposition wins by default. Someone Mara loves loses their freedom. The city's power shifts permanently. The deadline is real: miss it an",
+      "reason": "Stakes were too vague or too short; rewritten with concrete loss categories."
+    },
+    {
+      "location": "page:1 panel:1",
+      "field": "text",
+      "old_value": "Well, basically, I mean, it was just really kind of a very normal night in the Zone. Mara moved thro",
+      "new_value": "BALLOON: Well basically I mean it was just really kind of a very norm... | CAPTION: the flooded streets actually thinking about all the things s...",
+      "reason": "Panel was 15.5s read time; split into balloon + caption to restore pacing."
+    },
+    {
+      "location": "page:1 panel:2",
+      "field": "dialogue",
+      "old_value": "Mara: I gotta get muh package through before dawn or we're all done for, you kno",
+      "new_value": "Mara: I gotta get my package through before dawn or we're all done for, you know",
+      "reason": "Replaced phonetic dialect crutches with clean dialogue (rhythm > misspelling)."
+    },
+    {
+      "location": "page:1 panel:4",
+      "field": "dialogue",
+      "old_value": "Ah think we should go.",
+      "new_value": "I think we should go.",
+      "reason": "Replaced phonetic dialect crutches with clean dialogue (rhythm > misspelling)."
+    },
+    {
+      "location": "beat:1 (Opening)",
+      "field": "cost/change/new_problem",
+      "old_value": "(hollow -- no consequence)",
+      "new_value": "cost: The plan worked -- but the price was a piece of Mara's self- | change: A door closed permanently. The story can't go backward.",
+      "reason": "Beat lacked narrative consequence; added cost + change + new_problem."
+    },
+    {
+      "location": "beat:3 (Escalation)",
+      "field": "cost/change/new_problem",
+      "old_value": "(hollow -- no consequence)",
+      "new_value": "cost: An ally's trust cracks. The relationship shifts. | change: Mara's status shifts: what was safe is now dangerous.",
+      "reason": "Beat lacked narrative consequence; added cost + change + new_problem."
+    },
+    {
+      "location": "beat:4 (Climax fight scene)",
+      "field": "cost/change/new_problem",
+      "old_value": "(hollow -- no consequence)",
+      "new_value": "cost: Mara loses a resource they can't replace. | change: A door closed permanently. The story can't go backward.",
+      "reason": "Beat lacked narrative consequence; added cost + change + new_problem."
+    },
+    {
+      "location": "page:2",
+      "field": "page_turn_reveal",
+      "old_value": "(none tagged)",
+      "new_value": "REVEAL: The truth about the opposition's plan lands. Mara sees the real cost.",
+      "reason": "No page-turn reveal was tagged; placed at the story's pivot point."
+    },
+    {
+      "location": "spec",
+      "field": "central_conflict",
+      "old_value": "(empty)",
+      "new_value": "Mara vs the opposition: a fight over who controls the truth, the resources, and the outcome of deliver the stolen data c",
+      "reason": "Central conflict was missing; generated from character dynamics."
+    },
+    {
+      "location": "spec",
+      "field": "protagonist_need",
+      "old_value": "(empty)",
+      "new_value": "Learn to overcome control issues by choosing vulnerability over control.",
+      "reason": "Protagonist psychological need was missing; derived from character flaw."
+    },
+    {
+      "location": "page:1 panel:1",
+      "field": "dialogue_tighten",
+      "old_value": "Well basically I mean it was just really kind of a very norm",
+      "new_value": "It was a normal night in the Zone Mara moved through --",
+      "reason": "Trimmed filler words for comics-grade dialogue density."
+    },
+    {
+      "location": "page:1 panel:1",
+      "field": "dialogue_tighten",
+      "old_value": "the flooded streets actually thinking about all the things s",
+      "new_value": "The flooded streets thinking about all the things she had to",
+      "reason": "Trimmed filler words for comics-grade dialogue density."
+    },
+    {
+      "location": "page:1 panel:2",
+      "field": "dialogue_tighten",
+      "old_value": "Mara: I gotta get my package through before dawn or we're al",
+      "new_value": "Mara: I gotta get my package through before dawn or we're al",
+      "reason": "Trimmed filler words for comics-grade dialogue density."
+    }
+  ],
+  "summary": {
+    "status": "red",
+    "counts": {
+      "FAIL": 6,
+      "WARN": 4,
+      "NOTE": 3,
+      "PASS": 19
+    },
+    "by_priority": {
+      "P1_STORY_FUNCTION": {
+        "FAIL": 4,
+        "WARN": 3,
+        "NOTE": 1,
+        "PASS": 6
+      },
+      "P2_COMICS_SPECIFICITY": {
+        "FAIL": 2,
+        "WARN": 1,
+        "NOTE": 0,
+        "PASS": 2
+      },
+      "P6_MEDIUM_CONSTRAINTS": {
+        "FAIL": 0,
+        "WARN": 0,
+        "NOTE": 1,
+        "PASS": 0
+      },
+      "P7_REWRITE_LOOP": {
+        "FAIL": 0,
+        "WARN": 0,
+        "NOTE": 1,
+        "PASS": 0
+      },
+      "P0_HARD_CONSTRAINTS": {
+        "FAIL": 0,
+        "WARN": 0,
+        "NOTE": 0,
+        "PASS": 7
+      },
+      "P3_DRAMA_AND_PACING": {
+        "FAIL": 0,
+        "WARN": 0,
+        "NOTE": 0,
+        "PASS": 1
+      },
+      "P4_TRANSITIONS": {
+        "FAIL": 0,
+        "WARN": 0,
+        "NOTE": 0,
+        "PASS": 3
+      }
+    }
+  },
+  "results": [
+    {
+      "ok": false,
+      "rule_id": "SLOANE.PURPOSE_REQUIRED",
+      "priority": 80,
+      "level": 3,
+      "message": "Scene purpose missing.",
+      "location": "scene:PAGE_1",
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": false,
+      "rule_id": "SLOANE.PURPOSE_REQUIRED",
+      "priority": 80,
+      "level": 3,
+      "message": "Scene purpose missing.",
+      "location": "scene:PAGE_2",
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": false,
+      "rule_id": "SLOANE.PURPOSE_REQUIRED",
+      "priority": 80,
+      "level": 3,
+      "message": "Scene purpose missing.",
+      "location": "scene:PAGE_3",
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": false,
+      "rule_id": "SLOANE.PURPOSE_REQUIRED",
+      "priority": 80,
+      "level": 3,
+      "message": "Scene purpose missing.",
+      "location": "scene:PAGE_4",
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": false,
+      "rule_id": "P2.CREATING_DRAMA",
+      "priority": 60,
+      "level": 3,
+      "message": "Missing: >=2 obstacles.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": false,
+      "rule_id": "P2.CHARACTERIZATION_CHOICE",
+      "priority": 60,
+      "level": 3,
+      "message": "Some reveals missing pressure/choice/cost.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {
+        "weak_reveals": 1
+      }
+    },
+    {
+      "ok": true,
+      "rule_id": "MYERS.FAMILY_ROLES",
+      "priority": 80,
+      "level": 2,
+      "message": "Too few family roles.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [
+        "fix_add_character_role"
+      ],
+      "evidence": {
+        "roles_present": [
+          "protagonist"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "rule_id": "STAN.ONBOARDING_CLARITY",
+      "priority": 80,
+      "level": 2,
+      "message": "Onboarding clarity is thin.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "STAN.CHARACTER_DRIVEN_BEATS",
+      "priority": 80,
+      "level": 2,
+      "message": "Some beats not tied to character want/decision.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {
+        "count": 4
+      }
+    },
+    {
+      "ok": true,
+      "rule_id": "CONFLICT.FOUR_LEVELS",
+      "priority": 60,
+      "level": 2,
+      "message": "Conflict coverage incomplete.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [
+        "fix_set_central_conflict"
+      ],
+      "evidence": {
+        "missing": [
+          "macro obstacles"
+        ]
+      }
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.REPRESENTATION_NOTES",
+      "priority": 80,
+      "level": 1,
+      "message": "Add representation_notes to avoid a flattened world.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "COMICS.ALLOTTED_READING_TIME",
+      "priority": 10,
+      "level": 1,
+      "message": "Match balloon load to intended rhythm.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PROCESS.REWRITE_LOOP",
+      "priority": 0,
+      "level": 1,
+      "message": "Plan at least one rewrite pass focused on reader absorption and clarity.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P0.SPEC_SCHEMA_SHAPE",
+      "priority": 100,
+      "level": 0,
+      "message": "Spec schema shape looks sane.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P0.SCRIPT_MIN_FIELDS",
+      "priority": 100,
+      "level": 0,
+      "message": "Script minimum fields pass.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P0.HYBRID_LANGUAGE",
+      "priority": 100,
+      "level": 0,
+      "message": "Word/image integration passes.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P0.PAGE_SANITY",
+      "priority": 100,
+      "level": 0,
+      "message": "Page structure passes.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.DIALOGUE_CLEANLINESS",
+      "priority": 100,
+      "level": 0,
+      "message": "Dialogue cleanliness OK.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.COPY_HEAVY",
+      "priority": 100,
+      "level": 0,
+      "message": "Copy density acceptable.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.LAYOUT_TRICKS",
+      "priority": 100,
+      "level": 0,
+      "message": "Layouts clean.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P1.STORY_DEFINITION",
+      "priority": 80,
+      "level": 0,
+      "message": "Story definition satisfied.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "P1.STORY_STRUCTURE_CONSEQUENCE",
+      "priority": 80,
+      "level": 0,
+      "message": "Beats carry consequences.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "DCOSTA.INCITING_TIMING",
+      "priority": 80,
+      "level": 0,
+      "message": "Inciting incident early enough.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "MYERS.UNITY_ARC",
+      "priority": 80,
+      "level": 0,
+      "message": "Unity arc hint present.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.MINDLESS_VIOLENCE",
+      "priority": 80,
+      "level": 0,
+      "message": "Violence has consequence (or none detected).",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "STAN.CONFLICT_PER_SCENE",
+      "priority": 80,
+      "level": 0,
+      "message": "Conflict present per scene.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "DCOSTA.STAKES_SPECIFICITY",
+      "priority": 60,
+      "level": 0,
+      "message": "Stakes specific enough.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "PRIEST.INTERIOR_SPLASH",
+      "priority": 60,
+      "level": 0,
+      "message": "Splash placement OK.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "MOORE.PANEL_TIME_STOPPERS",
+      "priority": 40,
+      "level": 0,
+      "message": "No panel-time stoppers.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "SCENE.OUTCOME_DIRECTION",
+      "priority": 30,
+      "level": 0,
+      "message": "Scene outcomes present.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "MOORE.TRANSITION_GLUE",
+      "priority": 30,
+      "level": 0,
+      "message": "Transitions have glue.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    },
+    {
+      "ok": true,
+      "rule_id": "GRID.PAGE_TURN_REVEALS",
+      "priority": 30,
+      "level": 0,
+      "message": "Page-turn reveal tagged.",
+      "location": null,
+      "fixes": [],
+      "fix_functions": [],
+      "evidence": {}
+    }
+  ],
+  "gate": {
+    "min_priority": "P1_STORY_FUNCTION",
+    "ok": false,
+    "message": "RulesEngine gate failed:\n[P1_STORY_FUNCTION] SLOANE.PURPOSE_REQUIRED @ scene:PAGE_1: Scene purpose missing.\n[P1_STORY_FUNCTION] SLOANE.PURPOSE_REQUIRED @ scene:PAGE_2: Scene purpose missing.\n[P1_STORY_FUNCTION] SLOANE.PURPOSE_REQUIRED @ scene:PAGE_3: Scene purpose missing.\n[P1_STORY_FUNCTION] SLOANE.PURPOSE_REQUIRED @ scene:PAGE_4: Scene purpose missing."
+  }
+}
