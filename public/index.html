@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Script Editor — Upload, Read, Edit</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -122,18 +123,6 @@
 
   .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 
-  .btn-success {
-    background: var(--success);
-    color: white;
-    border-color: var(--success);
-  }
-
-  .btn-icon {
-    padding: 8px;
-    min-width: 36px;
-    justify-content: center;
-  }
-
   .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
@@ -169,7 +158,7 @@
     margin-bottom: 8px;
   }
 
-  .upload-container p {
+  .upload-container > p {
     color: var(--text-secondary);
     font-size: 15px;
     margin-bottom: 32px;
@@ -252,9 +241,7 @@
     overflow: hidden;
   }
 
-  .editor-view.active {
-    display: flex;
-  }
+  .editor-view.active { display: flex; }
 
   .editor-toolbar {
     background: var(--surface);
@@ -322,7 +309,7 @@
     overflow: hidden;
   }
 
-  /* ── Image Panel ── */
+  /* ── Image/Preview Panel ── */
   .image-panel {
     width: 50%;
     border-right: 1px solid var(--border);
@@ -334,16 +321,56 @@
 
   .image-panel.hidden { display: none; }
 
+  .page-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .page-nav.hidden { display: none; }
+
+  .page-nav button {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .page-nav button:hover { background: var(--surface-hover); }
+  .page-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .page-nav span {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 80px;
+    text-align: center;
+  }
+
   .image-wrapper {
     flex: 1;
     overflow: auto;
     display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding: 24px;
+    gap: 16px;
   }
 
-  .image-wrapper img {
+  .image-wrapper img,
+  .image-wrapper canvas {
     max-width: 100%;
     height: auto;
     border-radius: var(--radius);
@@ -357,17 +384,6 @@
     flex-direction: column;
     overflow: hidden;
     min-width: 0;
-  }
-
-  .text-panel.full-width {
-    width: 100%;
-  }
-
-  .editor-area {
-    flex: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
   }
 
   .script-editor {
@@ -385,9 +401,7 @@
     overflow-y: auto;
   }
 
-  .script-editor::placeholder {
-    color: var(--text-muted);
-  }
+  .script-editor::placeholder { color: var(--text-muted); }
 
   /* ── OCR Progress ── */
   .ocr-overlay {
@@ -401,9 +415,7 @@
     backdrop-filter: blur(4px);
   }
 
-  .ocr-overlay.active {
-    display: flex;
-  }
+  .ocr-overlay.active { display: flex; }
 
   .ocr-modal {
     background: var(--surface);
@@ -483,10 +495,7 @@
     z-index: 300;
   }
 
-  .toast.show {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  .toast.show { transform: translateY(0); opacity: 1; }
 
   /* ── Responsive ── */
   @media (max-width: 768px) {
@@ -525,22 +534,24 @@
   <div class="upload-view" id="upload-view">
     <div class="upload-container">
       <h2>Upload your script</h2>
-      <p>Drop an image of your handwritten or printed script and we'll read it for you. Then edit, refine, and export.</p>
+      <p>Drop a PDF, image, or document and we'll read it for you. Then edit, refine, and export.</p>
 
       <div class="dropzone" id="dropzone">
         <div class="dropzone-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-            <circle cx="8.5" cy="8.5" r="1.5"/>
-            <polyline points="21 15 16 10 5 21"/>
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
           </svg>
         </div>
-        <h3>Drop image here or click to browse</h3>
-        <p>Supports JPG, PNG, TIFF, BMP, WebP</p>
-        <input type="file" id="file-input" accept="image/*">
+        <h3>Drop your file here or click to browse</h3>
+        <p>PDF, JPG, PNG, TIFF, BMP, WebP</p>
+        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
       </div>
 
-      <p class="upload-hint">Your images are processed entirely in your browser. Nothing is uploaded to any server.</p>
+      <p class="upload-hint">Files are processed entirely in your browser. Nothing is uploaded to any server.</p>
 
       <div class="paste-option">
         <button class="btn btn-primary" onclick="startBlankEditor()">
@@ -562,7 +573,7 @@
           <button data-view="image" onclick="setView('image')">Image</button>
           <button data-view="text" onclick="setView('text')">Text</button>
         </div>
-        <button class="btn" onclick="rerunOCR()" id="btn-reocr" title="Re-run OCR on this image">
+        <button class="btn" onclick="rerunOCR()" id="btn-reocr" title="Re-scan current page">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
           Re-scan
         </button>
@@ -574,25 +585,30 @@
     </div>
 
     <div class="editor-main">
-      <!-- Image Side -->
+      <!-- Preview Side -->
       <div class="image-panel" id="image-panel">
-        <div class="image-wrapper">
-          <img id="preview-img" src="" alt="Uploaded script">
+        <div class="page-nav hidden" id="page-nav">
+          <button onclick="goToPage(currentPage - 1)" id="btn-prev-page">Prev</button>
+          <span id="page-indicator">Page 1 of 1</span>
+          <button onclick="goToPage(currentPage + 1)" id="btn-next-page">Next</button>
+          <button class="btn" style="margin-left:8px;padding:4px 10px;font-size:11px;" onclick="ocrAllPages()" id="btn-ocr-all">Scan All Pages</button>
+        </div>
+        <div class="image-wrapper" id="image-wrapper">
+          <img id="preview-img" src="" alt="Uploaded script" style="display:none">
+          <canvas id="preview-canvas" style="display:none"></canvas>
         </div>
       </div>
 
       <!-- Text Side -->
       <div class="text-panel" id="text-panel">
-        <div class="editor-area">
-          <textarea
-            class="script-editor"
-            id="script-editor"
-            placeholder="Your script text will appear here after OCR processing...
+        <textarea
+          class="script-editor"
+          id="script-editor"
+          placeholder="Your script text will appear here after scanning...
 
 You can also type or paste directly."
-            spellcheck="true"
-          ></textarea>
-        </div>
+          spellcheck="true"
+        ></textarea>
       </div>
     </div>
 
@@ -606,7 +622,7 @@ You can also type or paste directly."
 <!-- ── OCR Progress Overlay ── -->
 <div class="ocr-overlay" id="ocr-overlay">
   <div class="ocr-modal">
-    <h3>Reading your script</h3>
+    <h3 id="ocr-title">Reading your script</h3>
     <p id="ocr-status-text">Initializing OCR engine...</p>
     <div class="progress-bar">
       <div class="progress-fill" id="progress-fill"></div>
@@ -618,38 +634,55 @@ You can also type or paste directly."
 <!-- ── Toast ── -->
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+// ── Load PDF.js ──
+const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs');
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+
 // ── State ──
 let currentFile = null;
 let currentView = 'split';
+let pdfDoc = null;        // loaded PDF document
+let totalPages = 0;
+let pageTexts = [];       // OCR'd text per page
+let renderedPages = [];   // rendered page canvases as data URLs
+window.currentPage = 1;
 
 // ── Elements ──
-const $uploadView = document.getElementById('upload-view');
-const $editorView = document.getElementById('editor-view');
-const $dropzone = document.getElementById('dropzone');
-const $fileInput = document.getElementById('file-input');
-const $editor = document.getElementById('script-editor');
-const $previewImg = document.getElementById('preview-img');
-const $imagePanel = document.getElementById('image-panel');
-const $textPanel = document.getElementById('text-panel');
-const $ocrOverlay = document.getElementById('ocr-overlay');
-const $progressFill = document.getElementById('progress-fill');
-const $progressText = document.getElementById('progress-text');
-const $ocrStatusText = document.getElementById('ocr-status-text');
-const $wordCount = document.getElementById('word-count');
-const $statusText = document.getElementById('status-text');
-const $fileName = document.getElementById('file-name');
-const $btnNew = document.getElementById('btn-new');
-const $btnExport = document.getElementById('btn-export');
-const $btnReocr = document.getElementById('btn-reocr');
-const $viewToggle = document.getElementById('view-toggle');
+const $ = (id) => document.getElementById(id);
+const $uploadView = $('upload-view');
+const $editorView = $('editor-view');
+const $dropzone = $('dropzone');
+const $fileInput = $('file-input');
+const $editor = $('script-editor');
+const $previewImg = $('preview-img');
+const $previewCanvas = $('preview-canvas');
+const $imagePanel = $('image-panel');
+const $imageWrapper = $('image-wrapper');
+const $textPanel = $('text-panel');
+const $ocrOverlay = $('ocr-overlay');
+const $progressFill = $('progress-fill');
+const $progressText = $('progress-text');
+const $ocrStatusText = $('ocr-status-text');
+const $ocrTitle = $('ocr-title');
+const $wordCount = $('word-count');
+const $statusText = $('status-text');
+const $fileName = $('file-name');
+const $btnNew = $('btn-new');
+const $btnExport = $('btn-export');
+const $btnReocr = $('btn-reocr');
+const $viewToggle = $('view-toggle');
+const $pageNav = $('page-nav');
+const $pageIndicator = $('page-indicator');
+const $btnPrev = $('btn-prev-page');
+const $btnNext = $('btn-next-page');
+const $btnOcrAll = $('btn-ocr-all');
 
 // ── File Handling ──
 $fileInput.addEventListener('change', (e) => {
   if (e.target.files.length) handleFile(e.target.files[0]);
 });
 
-// Drag and drop
 $dropzone.addEventListener('dragover', (e) => {
   e.preventDefault();
   $dropzone.classList.add('dragover');
@@ -665,7 +698,6 @@ $dropzone.addEventListener('drop', (e) => {
   if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
 });
 
-// Paste images from clipboard
 document.addEventListener('paste', (e) => {
   const items = e.clipboardData?.items;
   if (!items) return;
@@ -678,52 +710,188 @@ document.addEventListener('paste', (e) => {
   }
 });
 
-function handleFile(file) {
-  if (!file.type.startsWith('image/')) {
-    showToast('Please upload an image file (JPG, PNG, etc.)');
+async function handleFile(file) {
+  const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  const isImage = file.type.startsWith('image/');
+
+  if (!isPDF && !isImage) {
+    showToast('Unsupported file type. Use PDF, JPG, PNG, TIFF, BMP, or WebP.');
     return;
   }
 
   currentFile = file;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    $previewImg.src = e.target.result;
-    $fileName.textContent = file.name;
-    switchToEditor(true);
-    runOCR(e.target.result);
-  };
-  reader.readAsDataURL(file);
-}
+  $fileName.textContent = file.name;
 
-function startBlankEditor() {
-  currentFile = null;
-  $fileName.textContent = 'Untitled Script';
-  switchToEditor(false);
-  $editor.focus();
-}
-
-function switchToEditor(hasImage) {
-  $uploadView.style.display = 'none';
-  $editorView.classList.add('active');
-  $btnNew.style.display = '';
-  $btnExport.style.display = '';
-
-  if (hasImage) {
-    setView('split');
-    $viewToggle.style.display = '';
-    $btnReocr.style.display = '';
+  if (isPDF) {
+    await handlePDF(file);
   } else {
-    setView('text');
-    $viewToggle.style.display = 'none';
-    $btnReocr.style.display = 'none';
+    await handleImage(file);
   }
 }
 
-// ── OCR ──
-async function runOCR(imageSrc) {
+// ── Image Handling ──
+async function handleImage(file) {
+  pdfDoc = null;
+  totalPages = 1;
+  pageTexts = [''];
+  renderedPages = [];
+  window.currentPage = 1;
+
+  const dataUrl = await readFileAsDataURL(file);
+  $previewImg.src = dataUrl;
+  $previewImg.style.display = 'block';
+  $previewCanvas.style.display = 'none';
+  $pageNav.classList.add('hidden');
+
+  switchToEditor(true);
+  await runOCR(dataUrl, 0);
+}
+
+// ── PDF Handling ──
+async function handlePDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  pdfDoc = await loadingTask.promise;
+  totalPages = pdfDoc.numPages;
+  pageTexts = new Array(totalPages).fill('');
+  renderedPages = new Array(totalPages).fill(null);
+  window.currentPage = 1;
+
+  $previewImg.style.display = 'none';
+  $previewCanvas.style.display = 'none';
+  $pageNav.classList.remove('hidden');
+
+  switchToEditor(true);
+  updatePageNav();
+
+  // Render first page and OCR it
+  await renderPDFPage(1);
+  await runOCR(renderedPages[0], 0);
+}
+
+async function renderPDFPage(pageNum) {
+  if (renderedPages[pageNum - 1]) return renderedPages[pageNum - 1];
+
+  const page = await pdfDoc.getPage(pageNum);
+  const scale = 2.0; // High DPI for better OCR
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  const ctx = canvas.getContext('2d');
+
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  const dataUrl = canvas.toDataURL('image/png');
+  renderedPages[pageNum - 1] = dataUrl;
+  return dataUrl;
+}
+
+function showPagePreview(pageNum) {
+  const dataUrl = renderedPages[pageNum - 1];
+  if (!dataUrl) return;
+
+  // Use an img element for the preview (cleaner than canvas)
+  $previewImg.src = dataUrl;
+  $previewImg.style.display = 'block';
+  $previewCanvas.style.display = 'none';
+}
+
+function updatePageNav() {
+  $pageIndicator.textContent = `Page ${window.currentPage} of ${totalPages}`;
+  $btnPrev.disabled = window.currentPage <= 1;
+  $btnNext.disabled = window.currentPage >= totalPages;
+}
+
+window.goToPage = async function(pageNum) {
+  if (pageNum < 1 || pageNum > totalPages) return;
+  window.currentPage = pageNum;
+  updatePageNav();
+
+  // Render the page if not already
+  if (!renderedPages[pageNum - 1]) {
+    await renderPDFPage(pageNum);
+  }
+  showPagePreview(pageNum);
+
+  // If this page hasn't been OCR'd yet, run OCR
+  if (!pageTexts[pageNum - 1]) {
+    await runOCR(renderedPages[pageNum - 1], pageNum - 1);
+  }
+
+  // Show the combined text
+  assembleText();
+}
+
+window.ocrAllPages = async function() {
+  $ocrOverlay.classList.add('active');
+  $ocrTitle.textContent = 'Scanning all pages';
+
+  for (let i = 0; i < totalPages; i++) {
+    $ocrStatusText.textContent = `Processing page ${i + 1} of ${totalPages}...`;
+    const overallPct = Math.round((i / totalPages) * 100);
+    $progressFill.style.width = overallPct + '%';
+    $progressText.textContent = overallPct + '%';
+
+    // Render if needed
+    if (!renderedPages[i]) {
+      await renderPDFPage(i + 1);
+    }
+
+    // OCR if needed
+    if (!pageTexts[i]) {
+      try {
+        const result = await Tesseract.recognize(renderedPages[i], 'eng', {
+          logger: (m) => {
+            if (m.status === 'recognizing text') {
+              const pagePct = Math.round(m.progress * 100);
+              const overall = Math.round(((i + m.progress) / totalPages) * 100);
+              $progressFill.style.width = overall + '%';
+              $progressText.textContent = overall + '%';
+            }
+          }
+        });
+        pageTexts[i] = cleanOCRText(result.data.text || '');
+      } catch (err) {
+        pageTexts[i] = `[OCR failed for page ${i + 1}]`;
+      }
+    }
+  }
+
+  $progressFill.style.width = '100%';
+  $progressText.textContent = '100%';
+  $ocrStatusText.textContent = 'All pages scanned!';
+
+  setTimeout(() => {
+    $ocrOverlay.classList.remove('active');
+    assembleText();
+    showToast(`All ${totalPages} pages scanned`);
+    $statusText.textContent = `All ${totalPages} pages scanned — review and edit`;
+  }, 400);
+}
+
+function assembleText() {
+  if (totalPages === 1) {
+    $editor.value = pageTexts[0] || '';
+  } else {
+    const parts = [];
+    for (let i = 0; i < totalPages; i++) {
+      if (pageTexts[i]) {
+        parts.push(`--- Page ${i + 1} ---\n\n${pageTexts[i]}`);
+      }
+    }
+    $editor.value = parts.join('\n\n');
+  }
+  updateWordCount();
+}
+
+// ── OCR (single page/image) ──
+async function runOCR(imageSrc, pageIndex) {
   $ocrOverlay.classList.add('active');
   $progressFill.style.width = '0%';
   $progressText.textContent = '0%';
+  $ocrTitle.textContent = 'Reading your script';
   $ocrStatusText.textContent = 'Initializing OCR engine...';
 
   try {
@@ -745,13 +913,13 @@ async function runOCR(imageSrc) {
       }
     });
 
-    // Clean up the OCR text
-    let text = result.data.text || '';
-    text = cleanOCRText(text);
+    let text = cleanOCRText(result.data.text || '');
+    pageTexts[pageIndex] = text;
 
-    $editor.value = text;
-    updateWordCount();
-    $statusText.textContent = 'OCR complete — review and edit your script';
+    assembleText();
+    $statusText.textContent = totalPages > 1
+      ? `Page ${pageIndex + 1} scanned — use "Scan All Pages" for the full document`
+      : 'Scan complete — review and edit your script';
     $progressFill.style.width = '100%';
     $progressText.textContent = '100%';
     $ocrStatusText.textContent = 'Done!';
@@ -759,61 +927,75 @@ async function runOCR(imageSrc) {
     setTimeout(() => {
       $ocrOverlay.classList.remove('active');
       $editor.focus();
-      showToast('Script read successfully — review and edit below');
+      showToast(totalPages > 1
+        ? `Page ${pageIndex + 1} scanned — click "Scan All Pages" for everything`
+        : 'Script read successfully');
     }, 500);
 
   } catch (err) {
     console.error('OCR Error:', err);
     $ocrOverlay.classList.remove('active');
-    $statusText.textContent = 'OCR failed — you can type your script manually';
+    $statusText.textContent = 'OCR failed — you can type manually';
     showToast('OCR failed: ' + err.message);
   }
 }
 
 function cleanOCRText(text) {
-  // Remove excessive blank lines (keep max 2)
   text = text.replace(/\n{4,}/g, '\n\n\n');
-  // Remove trailing spaces on each line
   text = text.replace(/[ \t]+$/gm, '');
-  // Remove leading/trailing whitespace from the whole text
   text = text.trim();
   return text;
 }
 
-async function rerunOCR() {
-  if (!$previewImg.src) return;
-  $editor.value = '';
-  runOCR($previewImg.src);
+window.rerunOCR = async function() {
+  if (pdfDoc) {
+    const idx = window.currentPage - 1;
+    pageTexts[idx] = '';
+    if (renderedPages[idx]) {
+      await runOCR(renderedPages[idx], idx);
+    }
+  } else if ($previewImg.src) {
+    pageTexts[0] = '';
+    await runOCR($previewImg.src, 0);
+  }
 }
 
-// ── View Modes ──
-function setView(view) {
-  currentView = view;
+// ── Utility ──
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
 
-  // Update toggle buttons
+// ── View / Editor ──
+function switchToEditor(hasFile) {
+  $uploadView.style.display = 'none';
+  $editorView.classList.add('active');
+  $btnNew.style.display = '';
+  $btnExport.style.display = '';
+
+  if (hasFile) {
+    setView('split');
+    $viewToggle.style.display = '';
+    $btnReocr.style.display = '';
+  } else {
+    setView('text');
+    $viewToggle.style.display = 'none';
+    $btnReocr.style.display = 'none';
+  }
+}
+
+window.setView = function(view) {
+  currentView = view;
   $viewToggle.querySelectorAll('button').forEach(b => {
     b.classList.toggle('active', b.dataset.view === view);
   });
 
-  if (view === 'split') {
-    $imagePanel.classList.remove('hidden');
-    $imagePanel.style.width = '50%';
-    $textPanel.classList.remove('full-width');
-  } else if (view === 'image') {
-    $imagePanel.classList.remove('hidden');
-    $imagePanel.style.width = '100%';
-    $textPanel.classList.add('full-width');
-    $textPanel.style.display = 'none';
-    setTimeout(() => { $textPanel.style.display = ''; }, 0);
-    $textPanel.style.display = 'none';
-  } else {
-    $imagePanel.classList.add('hidden');
-    $textPanel.classList.add('full-width');
-    $textPanel.style.display = '';
-  }
-
-  // Fix: properly handle image-only view
   if (view === 'image') {
+    $imagePanel.classList.remove('hidden');
     $imagePanel.style.width = '100%';
     $textPanel.style.display = 'none';
   } else if (view === 'text') {
@@ -824,6 +1006,14 @@ function setView(view) {
     $imagePanel.style.width = '50%';
     $textPanel.style.display = '';
   }
+}
+
+window.startBlankEditor = function() {
+  currentFile = null;
+  pdfDoc = null;
+  $fileName.textContent = 'Untitled Script';
+  switchToEditor(false);
+  $editor.focus();
 }
 
 // ── Word Count ──
@@ -837,29 +1027,21 @@ function updateWordCount() {
 }
 
 // ── Copy / Export ──
-function copyText() {
+window.copyText = function() {
   const text = $editor.value;
-  if (!text.trim()) {
-    showToast('Nothing to copy');
-    return;
-  }
+  if (!text.trim()) { showToast('Nothing to copy'); return; }
   navigator.clipboard.writeText(text).then(() => {
     showToast('Copied to clipboard');
   }).catch(() => {
-    // Fallback
     $editor.select();
     document.execCommand('copy');
     showToast('Copied to clipboard');
   });
 }
 
-function exportText() {
+window.exportText = function() {
   const text = $editor.value;
-  if (!text.trim()) {
-    showToast('Nothing to export');
-    return;
-  }
-
+  if (!text.trim()) { showToast('Nothing to export'); return; }
   const name = ($fileName.textContent || 'script').replace(/\.[^.]+$/, '') + '.txt';
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
@@ -872,25 +1054,32 @@ function exportText() {
 }
 
 // ── Reset ──
-function resetApp() {
+window.resetApp = function() {
   currentFile = null;
+  pdfDoc = null;
+  totalPages = 0;
+  pageTexts = [];
+  renderedPages = [];
   $editor.value = '';
   $previewImg.src = '';
+  $previewImg.style.display = 'none';
+  $previewCanvas.style.display = 'none';
   $fileInput.value = '';
   $editorView.classList.remove('active');
   $uploadView.style.display = '';
   $btnNew.style.display = 'none';
   $btnExport.style.display = 'none';
+  $pageNav.classList.add('hidden');
   $statusText.textContent = 'Ready';
   updateWordCount();
 }
 
 // ── Toast ──
 function showToast(message) {
-  const $toast = document.getElementById('toast');
-  $toast.textContent = message;
-  $toast.classList.add('show');
-  setTimeout(() => $toast.classList.remove('show'), 3000);
+  const el = $('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 // ── Init ──
