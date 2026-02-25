@@ -1,0 +1,118 @@
+{
+  "title": "The Last Courier",
+  "medium_target": "comics",
+  "genre": "noir sci-fi",
+  "tone": "tense",
+  "premise": "Mara delivers packages in a flooded megacity",
+  "protagonist": "Mara",
+  "protagonist_goal": "deliver the stolen data core before dawn",
+  "stakes": "bad things happen",
+  "character_change": "",
+  "target_emotion": "dread",
+  "flaws": ["control issues"],
+  "obstacles": ["a corrupt checkpoint"],
+  "beats": [
+    {"name": "Opening", "change": "", "new_problem": "", "cost": ""},
+    {"name": "Complication", "change": "things get worse", "new_problem": "the cops show up", "cost": ""},
+    {"name": "Escalation", "change": "", "new_problem": "", "cost": ""},
+    {"name": "Climax fight scene", "change": "", "new_problem": "", "cost": ""}
+  ],
+  "character_reveals": [
+    {"pressure": "she's cornered", "choice": "", "cost": ""}
+  ],
+  "characters": [
+    {"role": "protagonist", "name": "Mara"}
+  ],
+  "pages": [
+    {
+      "page_no": 1,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Wide shot of flooded megacity at night.",
+          "text": [{"type": "caption", "value": "Well, basically, I mean, it was just really kind of a very normal night in the Zone. Mara moved through the flooded streets, actually thinking about all the things she had to do, you know, sort of wondering if mah luck would hold."}]
+        },
+        {
+          "art": "",
+          "text": [{"type": "balloon", "value": "Mara: I gotta get muh package through before dawn or we're all done for, you know what I mean?"}]
+        },
+        {
+          "art": "Close-up of Mara's face.",
+          "text": []
+        },
+        {
+          "art": "Medium shot of Mara walking.",
+          "text": [{"type": "balloon", "value": "Ah think we should go."}]
+        }
+      ]
+    },
+    {
+      "page_no": 2,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Mara at the checkpoint.",
+          "text": [{"type": "balloon", "value": "Guard: Papers. Now."}]
+        },
+        {
+          "art": "Mara reaching into her jacket.",
+          "text": [{"type": "balloon", "value": "Mara: Here. Everything's in order."}]
+        },
+        {
+          "art": "",
+          "text": [{"type": "balloon", "value": "Guard: This expired yesterday."}]
+        },
+        {
+          "art": "Wide shot of the checkpoint.",
+          "text": [{"type": "balloon", "value": "Mara: That's impossible. Check again."}]
+        }
+      ]
+    },
+    {
+      "page_no": 3,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Mara running through alleys.",
+          "text": [{"type": "caption", "value": "She ran."}]
+        },
+        {
+          "art": "Overhead shot of pursuit.",
+          "silent_intent": "The chase is on.",
+          "text": []
+        },
+        {
+          "art": "Mara ducking into a doorway.",
+          "text": [{"type": "balloon", "value": "Mara: Come on, come on..."}]
+        },
+        {
+          "art": "The door slams shut.",
+          "text": [{"type": "sfx", "value": "SLAM"}]
+        }
+      ]
+    },
+    {
+      "page_no": 4,
+      "page_type": "normal",
+      "panels": [
+        {
+          "art": "Interior safe house. Dim light.",
+          "text": [{"type": "caption", "value": "Safe. For now."}]
+        },
+        {
+          "art": "Mara examines the data core.",
+          "text": [{"type": "balloon", "value": "Mara: This better be worth it."}]
+        },
+        {
+          "art": "Close-up of the data core glowing.",
+          "silent_intent": "The core pulses with stolen secrets.",
+          "text": []
+        },
+        {
+          "art": "Mara looks out the window.",
+          "text": [{"type": "caption", "value": "Dawn in three hours."}]
+        }
+      ]
+    }
+  ]
+}
