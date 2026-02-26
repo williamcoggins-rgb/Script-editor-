@@ -418,6 +418,70 @@
     color: var(--text-muted); font-size: 13px;
   }
 
+  /* ── Edit Cards ── */
+  .edit-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .edit-card-head {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
+
+  .edit-tag {
+    font-size: 9px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.3px; padding: 2px 6px;
+    border-radius: 3px; white-space: nowrap;
+  }
+
+  .edit-tag.filler { background: #dbeafe; color: #1e40af; }
+  .edit-tag.dialect { background: #fef3c7; color: #92400e; }
+  .edit-tag.verbose { background: #e0e7ff; color: #3730a3; }
+  .edit-tag.passive { background: #fce7f3; color: #9d174d; }
+  .edit-tag.repeated { background: #fef9c3; color: #854d0e; }
+  .edit-tag.vague { background: #ffedd5; color: #9a3412; }
+  .edit-tag.density { background: #fee2e2; color: #991b1b; }
+
+  .edit-reason {
+    font-size: 11px; color: var(--text-secondary); flex: 1;
+  }
+
+  .edit-before {
+    background: #fee2e2; color: #991b1b;
+    padding: 4px 8px; border-radius: 4px;
+    font-family: var(--font-script); font-size: 11px;
+    text-decoration: line-through; margin-bottom: 4px;
+    word-break: break-word;
+  }
+
+  .edit-after {
+    background: #dcfce7; color: #166534;
+    padding: 4px 8px; border-radius: 4px;
+    font-family: var(--font-script); font-size: 11px;
+    word-break: break-word;
+  }
+
+  .edit-line-ref {
+    font-size: 10px; color: var(--text-muted); margin-top: 4px;
+    cursor: pointer;
+  }
+
+  .edit-line-ref:hover { color: var(--accent); text-decoration: underline; }
+
+  .edit-summary {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px;
+  }
+
+  .edit-summary-item {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 8px; border-radius: 4px;
+    background: var(--bg); border: 1px solid var(--border);
+  }
+
   /* ── OCR Progress ── */
   .ocr-overlay {
     position: fixed; inset: 0;
@@ -542,6 +606,7 @@
         </div>
       </div>
       <div class="toolbar-right">
+        <button class="btn btn-sm btn-primary" onclick="analyzeScript()" id="btn-analyze" style="display:none">Analyze &amp; Fix</button>
         <button class="btn btn-sm" onclick="rerunOCR()" id="btn-reocr" style="display:none">Re-scan</button>
         <button class="btn btn-sm" onclick="scanAllFiles()" id="btn-scan-all" style="display:none">Scan All</button>
       </div>
@@ -829,6 +894,7 @@ async function addFiles(fileList) {
   el('btn-copy').style.display = '';
   el('btn-insights').style.display = '';
   el('btn-scan-all').style.display = '';
+  el('btn-analyze').style.display = '';
   el('view-toggle').style.display = '';
 
   renderFileList();
@@ -1325,6 +1391,310 @@ window.scanRemainingPages = async function() {
   showToast('All pages scanned');
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// TEXT ANALYSIS ENGINE — Real corrections with before/after + reasons
+// ═══════════════════════════════════════════════════════════════════
+
+// Each edit: { type, tag, reason, before, after, lineNum, lineText }
+let lastAnalysis = null;
+
+const FILLER_PATTERNS = [
+  { rx: /\bwell,\s*/gi,    rep: '', reason: 'Filler word "well" weakens the line — remove for tighter dialogue' },
+  { rx: /\byou know,?\s*/gi, rep: '', reason: '"You know" is verbal filler — characters should speak with purpose' },
+  { rx: /\bI mean,?\s*/gi,  rep: '', reason: '"I mean" is hesitation filler — cut for sharper voice' },
+  { rx: /\bbasically,?\s*/gi, rep: '', reason: '"Basically" adds nothing — the reader already expects the point' },
+  { rx: /\bactually,?\s*/gi, rep: '', reason: '"Actually" is unnecessary hedging — state it directly' },
+  { rx: /\bjust\s+/gi,      rep: '', reason: '"Just" minimizes — remove for stronger statement' },
+  { rx: /\breally\s+/gi,    rep: '', reason: '"Really" is weak emphasis — if it matters, show it instead' },
+  { rx: /\bvery\s+/gi,      rep: '', reason: '"Very" is lazy intensifier — use a stronger word instead' },
+  { rx: /\bquite\s+/gi,     rep: '', reason: '"Quite" dilutes — be direct' },
+  { rx: /\bsort of\s+/gi,   rep: '', reason: '"Sort of" is vague hedging — commit to the statement' },
+  { rx: /\bkind of\s+/gi,   rep: '', reason: '"Kind of" is noncommittal — either it is or it isn\'t' },
+  { rx: /\bliterally\s+/gi,  rep: '', reason: '"Literally" is overused for emphasis — remove unless actually literal' },
+];
+
+const VERBOSE_PATTERNS = [
+  { rx: /\bin order to\b/gi, rep: 'to', reason: '"In order to" → "to" — same meaning, fewer words' },
+  { rx: /\bdue to the fact that\b/gi, rep: 'because', reason: '"Due to the fact that" → "because" — say it simply' },
+  { rx: /\bat this point in time\b/gi, rep: 'now', reason: '"At this point in time" → "now" — no need for 5 words when 1 works' },
+  { rx: /\bit is important to note that\s*/gi, rep: '', reason: 'Throat-clearing phrase — get to the point' },
+  { rx: /\bin the event that\b/gi, rep: 'if', reason: '"In the event that" → "if" — simpler is better' },
+  { rx: /\bfor the purpose of\b/gi, rep: 'to', reason: '"For the purpose of" → "to"' },
+  { rx: /\bin spite of the fact that\b/gi, rep: 'although', reason: '"In spite of the fact that" → "although"' },
+  { rx: /\bhas the ability to\b/gi, rep: 'can', reason: '"Has the ability to" → "can"' },
+  { rx: /\bis able to\b/gi, rep: 'can', reason: '"Is able to" → "can"' },
+  { rx: /\bwith regard to\b/gi, rep: 'about', reason: '"With regard to" → "about"' },
+];
+
+const DIALECT_CRUTCHES = [
+  { rx: /\bmah\b/gi,  rep: 'my',  reason: 'Phonetic dialect "mah" → "my" — fake dialect crutches flatten characters' },
+  { rx: /\bmuh\b/gi,  rep: 'my',  reason: 'Phonetic dialect "muh" → "my" — show voice through word choice, not misspelling' },
+  { rx: /\b[Aa]h\b(?!\s*[!?,.])/g, rep: 'I', reason: 'Phonetic "ah" → "I" — dialect through spelling is a shortcut, not characterization' },
+];
+
+const PASSIVE_RX = /\b(is|are|was|were|been|being|be)\s+(being\s+)?([\w]+ed|[\w]+en)\b/gi;
+
+const WEAK_WORDS = ['thing', 'things', 'stuff', 'got', 'get', 'nice', 'good', 'bad', 'big', 'small', 'went', 'said'];
+const WEAK_RX = new RegExp('\\b(' + WEAK_WORDS.join('|') + ')\\b', 'gi');
+
+function analyzeText(text) {
+  const lines = text.split('\n');
+  const edits = [];
+  const correctedLines = [...lines];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line.trim()) continue;
+    let working = line;
+
+    // 1. Filler words
+    for (const pat of FILLER_PATTERNS) {
+      const matches = working.match(pat.rx);
+      if (matches) {
+        for (const m of matches) {
+          const before = extractContext(working, working.indexOf(m), m.length);
+          const afterText = working.replace(pat.rx, pat.rep);
+          // Clean double spaces
+          const cleaned = afterText.replace(/  +/g, ' ').replace(/^ /, '');
+          edits.push({
+            type: 'filler', tag: 'Filler', reason: pat.reason,
+            before: before.trim(), after: extractContext(cleaned, 0, 60).trim(),
+            lineNum: i + 1, lineText: line,
+            fullBefore: working, fullAfter: cleaned
+          });
+          working = cleaned;
+          break; // one fix per pattern per line
+        }
+      }
+    }
+
+    // 2. Verbose phrases
+    for (const pat of VERBOSE_PATTERNS) {
+      if (pat.rx.test(working)) {
+        const before = working;
+        working = working.replace(pat.rx, pat.rep).replace(/  +/g, ' ');
+        edits.push({
+          type: 'verbose', tag: 'Wordy', reason: pat.reason,
+          before: before.trim(), after: working.trim(),
+          lineNum: i + 1, lineText: line,
+          fullBefore: before, fullAfter: working
+        });
+      }
+    }
+
+    // 3. Dialect crutches
+    for (const pat of DIALECT_CRUTCHES) {
+      if (pat.rx.test(working)) {
+        const before = working;
+        working = working.replace(pat.rx, pat.rep);
+        edits.push({
+          type: 'dialect', tag: 'Dialect', reason: pat.reason,
+          before: before.trim(), after: working.trim(),
+          lineNum: i + 1, lineText: line,
+          fullBefore: before, fullAfter: working
+        });
+      }
+    }
+
+    // 4. Passive voice (flag, don't auto-fix)
+    const passiveMatches = [...line.matchAll(PASSIVE_RX)];
+    for (const m of passiveMatches) {
+      edits.push({
+        type: 'passive', tag: 'Passive', reason: `"${m[0]}" — passive voice. Consider: who is doing the action? Active voice is stronger in scripts.`,
+        before: m[0], after: '(rewrite with active subject)',
+        lineNum: i + 1, lineText: line,
+        fullBefore: null, fullAfter: null, // no auto-fix
+        suggestion: true
+      });
+    }
+
+    // 5. Copy-heavy lines (> 35 words)
+    const wc = working.split(/\s+/).filter(w => w).length;
+    if (wc > 35) {
+      edits.push({
+        type: 'density', tag: 'Too Dense', reason: `This line has ${wc} words — panels with 35+ words take too long to read. Split into multiple panels or trim.`,
+        before: working.slice(0, 80) + '...', after: '(split or trim to under 35 words)',
+        lineNum: i + 1, lineText: line,
+        fullBefore: null, fullAfter: null,
+        suggestion: true
+      });
+    }
+
+    correctedLines[i] = working;
+  }
+
+  // 6. Repeated words across nearby lines
+  for (let i = 0; i < lines.length - 1; i++) {
+    const wordsA = (lines[i].match(/\b[a-z]{4,}\b/gi) || []).map(w => w.toLowerCase());
+    const wordsB = (lines[i+1].match(/\b[a-z]{4,}\b/gi) || []).map(w => w.toLowerCase());
+    const repeated = wordsA.filter(w => wordsB.includes(w) && !['that','this','with','from','have','they','them','then','than','what','when','were','will','your','been','each','said','into'].includes(w));
+    const unique = [...new Set(repeated)];
+    if (unique.length >= 2) {
+      edits.push({
+        type: 'repeated', tag: 'Repeated', reason: `Words "${unique.slice(0, 3).join('", "')}" appear in consecutive lines — vary word choice for better flow.`,
+        before: `Line ${i+1}: ...${unique[0]}... / Line ${i+2}: ...${unique[0]}...`,
+        after: '(use synonyms or restructure)',
+        lineNum: i + 1, lineText: lines[i],
+        fullBefore: null, fullAfter: null,
+        suggestion: true
+      });
+    }
+  }
+
+  // 7. Vague/weak words
+  for (let i = 0; i < lines.length; i++) {
+    const weakMatches = [...lines[i].matchAll(WEAK_RX)];
+    const seen = new Set();
+    for (const m of weakMatches) {
+      const word = m[0].toLowerCase();
+      if (seen.has(word)) continue;
+      seen.add(word);
+      const alternatives = {
+        thing: 'object, detail, element', things: 'details, elements, aspects',
+        stuff: 'material, gear, evidence', got: 'received, obtained, earned',
+        get: 'grab, earn, reach', nice: 'precise, elegant, sharp',
+        good: 'solid, strong, capable', bad: 'damaged, broken, dangerous',
+        big: 'massive, towering, vast', small: 'narrow, compact, faint',
+        went: 'moved, crossed, headed', said: 'stated, whispered, snapped',
+      };
+      edits.push({
+        type: 'vague', tag: 'Vague', reason: `"${m[0]}" is generic — consider: ${alternatives[word] || 'a more specific word'}`,
+        before: m[0], after: `(${alternatives[word] || 'more specific word'})`,
+        lineNum: i + 1, lineText: lines[i],
+        fullBefore: null, fullAfter: null,
+        suggestion: true
+      });
+    }
+  }
+
+  return {
+    edits,
+    correctedText: correctedLines.join('\n'),
+    autoFixCount: edits.filter(e => !e.suggestion).length,
+    suggestionCount: edits.filter(e => e.suggestion).length,
+  };
+}
+
+function extractContext(text, start, len) {
+  const s = Math.max(0, start - 15);
+  const e = Math.min(text.length, start + len + 15);
+  let ctx = text.slice(s, e);
+  if (s > 0) ctx = '...' + ctx;
+  if (e < text.length) ctx = ctx + '...';
+  return ctx;
+}
+
+// ── Analyze action ──
+window.analyzeScript = function() {
+  const text = el('script-editor').value;
+  if (!text.trim()) { showToast('Nothing to analyze — add text first'); return; }
+
+  lastAnalysis = analyzeText(text);
+  renderAnalysisInsights(lastAnalysis);
+
+  // Open insights panel if hidden
+  el('insights-panel').classList.remove('hidden');
+
+  const total = lastAnalysis.autoFixCount + lastAnalysis.suggestionCount;
+  if (total === 0) {
+    showToast('Script looks clean — no issues found');
+  } else {
+    showToast(`Found ${total} issue${total !== 1 ? 's' : ''} — ${lastAnalysis.autoFixCount} auto-fixable`);
+  }
+  el('status-text').textContent = `Analysis: ${lastAnalysis.autoFixCount} fixes, ${lastAnalysis.suggestionCount} suggestions`;
+}
+
+window.applyAllFixes = function() {
+  if (!lastAnalysis || lastAnalysis.autoFixCount === 0) return;
+  el('script-editor').value = lastAnalysis.correctedText;
+  updateWordCount();
+  showToast(`Applied ${lastAnalysis.autoFixCount} corrections`);
+  // Re-analyze to update
+  lastAnalysis = analyzeText(el('script-editor').value);
+  renderAnalysisInsights(lastAnalysis);
+}
+
+function renderAnalysisInsights(analysis) {
+  const body = el('insights-body');
+  const { edits, autoFixCount, suggestionCount } = analysis;
+  const total = autoFixCount + suggestionCount;
+
+  let html = '';
+
+  // Summary card
+  html += `<div class="insight-card">
+    <h4>Script Analysis</h4>
+    <div style="font-size:20px;font-weight:700;margin-bottom:4px;">${total} issue${total !== 1 ? 's' : ''} found</div>
+    <div class="edit-summary">
+      ${autoFixCount > 0 ? `<span class="edit-summary-item" style="color:var(--success)">${autoFixCount} auto-fixable</span>` : ''}
+      ${suggestionCount > 0 ? `<span class="edit-summary-item" style="color:var(--warning)">${suggestionCount} suggestions</span>` : ''}
+    </div>
+    ${autoFixCount > 0 ? `<button class="btn btn-sm btn-primary" onclick="applyAllFixes()" style="width:100%;justify-content:center;margin-top:6px;">Apply ${autoFixCount} Fixes</button>` : ''}
+  </div>`;
+
+  // Count by type
+  const typeCounts = {};
+  for (const e of edits) {
+    typeCounts[e.type] = (typeCounts[e.type] || 0) + 1;
+  }
+
+  if (Object.keys(typeCounts).length > 0) {
+    html += `<div class="insight-card"><h4>Breakdown</h4>`;
+    const typeLabels = {
+      filler: 'Filler words removed',
+      verbose: 'Wordy phrases shortened',
+      dialect: 'Dialect crutches cleaned',
+      passive: 'Passive voice flagged',
+      density: 'Dense lines flagged',
+      repeated: 'Repeated words flagged',
+      vague: 'Vague words flagged',
+    };
+    for (const [type, count] of Object.entries(typeCounts)) {
+      html += `<div class="stat-row"><span class="label">${typeLabels[type] || type}</span><span class="value">${count}</span></div>`;
+    }
+    html += `</div>`;
+  }
+
+  // Individual edits
+  if (edits.length > 0) {
+    html += `<div class="insight-card"><h4>All Changes (${edits.length})</h4>`;
+    for (const e of edits) {
+      html += `<div class="edit-card">
+        <div class="edit-card-head">
+          <span class="edit-tag ${e.type}">${e.tag}</span>
+          <span class="edit-reason">${e.reason}</span>
+        </div>
+        <div class="edit-before">${escHtml(e.before)}</div>
+        <div class="edit-after">${escHtml(e.after)}</div>
+        <div class="edit-line-ref" onclick="jumpToLine(${e.lineNum})">Line ${e.lineNum}${e.suggestion ? ' (suggestion)' : ' (auto-fix)'}</div>
+      </div>`;
+    }
+    html += `</div>`;
+  } else {
+    html += `<div class="insight-card">
+      <div class="no-issues">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div>Script looks clean. No filler words, no verbose phrases, no issues detected.</div>
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+window.jumpToLine = function(lineNum) {
+  const editor = el('script-editor');
+  const lines = editor.value.split('\n');
+  let pos = 0;
+  for (let i = 0; i < lineNum - 1 && i < lines.length; i++) {
+    pos += lines[i].length + 1;
+  }
+  editor.focus();
+  editor.setSelectionRange(pos, pos + (lines[lineNum - 1]?.length || 0));
+  const lineHeight = 25;
+  editor.scrollTop = Math.max(0, (lineNum - 3) * lineHeight);
+}
+
 window.findInEditor = function(text) {
   const editor = el('script-editor');
   const val = editor.value;
@@ -1432,8 +1802,10 @@ window.startBlankEditor = function() {
   el('btn-export').style.display = '';
   el('btn-copy').style.display = '';
   el('files-panel').classList.add('hidden');
-  el('insights-panel').classList.add('hidden');
+  el('insights-panel').classList.remove('hidden');
   el('view-toggle').style.display = 'none';
+  el('btn-analyze').style.display = '';
+  el('btn-insights').style.display = '';
   el('image-preview').classList.add('hidden');
   el('preview-bar').classList.add('hidden');
   el('script-editor').classList.remove('hidden');
@@ -1453,6 +1825,7 @@ window.resetApp = function() {
   el('btn-copy').style.display = 'none';
   el('btn-insights').style.display = 'none';
   el('btn-scan-all').style.display = 'none';
+  el('btn-analyze').style.display = 'none';
   el('btn-reocr').style.display = 'none';
   el('status-text').textContent = 'Ready';
   updateWordCount();
