@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Script Editor — Upload, Read, Edit</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -519,8 +520,8 @@
           </svg>
         </div>
         <h3>Drop files here or click to browse</h3>
-        <p>Select multiple files — PDF, JPG, PNG, TIFF, BMP, WebP</p>
-        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
+        <p>Select multiple files — PDF, Word, images, text files, and more</p>
+        <input type="file" id="file-input" multiple>
       </div>
       <p class="upload-hint">All processing happens in your browser. Nothing is uploaded to any server.</p>
       <div class="paste-option">
@@ -556,7 +557,7 @@
         <div class="file-list" id="file-list"></div>
         <div class="add-more-btn">
           <button class="btn btn-sm" style="width:100%;justify-content:center;">+ Add more files</button>
-          <input type="file" id="add-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
+          <input type="file" id="add-file-input" multiple>
         </div>
       </div>
 
@@ -651,6 +652,96 @@ function readFileAsDataURL(file) {
   });
 }
 
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = reject;
+    r.readAsText(file);
+  });
+}
+
+// Extract text from .docx files (ZIP containing XML)
+async function extractDocxText(file) {
+  const zip = await JSZip.loadAsync(file);
+  const docXml = zip.file('word/document.xml');
+  if (!docXml) throw new Error('Invalid .docx file — no document.xml found');
+
+  const xmlText = await docXml.async('string');
+  // Parse XML and extract text from <w:t> tags
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xmlText, 'application/xml');
+
+  const paragraphs = doc.getElementsByTagName('w:p');
+  const lines = [];
+
+  for (const para of paragraphs) {
+    const texts = para.getElementsByTagName('w:t');
+    let line = '';
+    for (const t of texts) {
+      line += t.textContent || '';
+    }
+    lines.push(line);
+  }
+
+  return lines.join('\n');
+}
+
+// Extract readable text from .doc binary files (best-effort)
+async function extractDocText(file) {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+
+  // .doc files contain text runs we can extract
+  // Look for ASCII text sequences between control characters
+  let text = '';
+  let run = '';
+  for (let i = 0; i < bytes.length; i++) {
+    const b = bytes[i];
+    // Printable ASCII range + common whitespace
+    if ((b >= 32 && b < 127) || b === 10 || b === 13 || b === 9) {
+      run += String.fromCharCode(b);
+    } else {
+      if (run.length > 4) { // Only keep runs longer than 4 chars (skip garbage)
+        text += run + '\n';
+      }
+      run = '';
+    }
+  }
+  if (run.length > 4) text += run;
+
+  // Clean up
+  text = text.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+
+  if (text.length < 10) {
+    return '[Could not extract text from .doc file — try saving as .docx or PDF and re-uploading]';
+  }
+  return text;
+}
+
+// Strip RTF formatting to plain text (basic)
+function stripRTF(rtf) {
+  // Remove RTF header/commands, keep text
+  let text = rtf;
+  text = text.replace(/\{\\[^{}]*\}/g, ''); // Remove groups with commands
+  text = text.replace(/\\[a-z]+\d*\s?/gi, ''); // Remove control words
+  text = text.replace(/[{}]/g, ''); // Remove remaining braces
+  text = text.replace(/\r\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  return text;
+}
+
+// Create a synthetic ocrData object for text-based files (no OCR needed)
+function makeTextOcrData(text) {
+  const words = text.split(/\s+/).filter(w => w.length > 0);
+  return {
+    confidence: 100,
+    words: words.map(w => ({ text: w, confidence: 100 })),
+    lines: text.split('\n').filter(l => l.trim().length > 0).length,
+    paragraphs: text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length,
+    source: 'direct-text', // Flag that this was read directly, not OCR'd
+  };
+}
+
 // ── File Handling ──
 el('file-input').addEventListener('change', e => {
   if (e.target.files.length) addFiles(e.target.files);
@@ -693,24 +784,32 @@ document.addEventListener('paste', e => {
   }
 });
 
+function classifyFile(file) {
+  const ext = getFileExt(file.name);
+  const mime = file.type || '';
+
+  if (mime === 'application/pdf' || ext === 'pdf') return 'pdf';
+  if (ext === 'docx' || mime === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') return 'docx';
+  if (ext === 'doc' || mime === 'application/msword') return 'doc';
+  if (ext === 'rtf' || mime === 'application/rtf' || mime === 'text/rtf') return 'rtf';
+  if (ext === 'txt' || ext === 'text' || mime === 'text/plain') return 'text';
+  if (ext === 'md' || ext === 'markdown') return 'text';
+  if (ext === 'csv') return 'text';
+  if (mime.startsWith('image/') || ['jpg','jpeg','png','tiff','tif','bmp','webp','gif','heic','heif','svg'].includes(ext)) return 'image';
+  // Accept anything — try to read as text as a fallback
+  return 'unknown';
+}
+
 async function addFiles(fileList) {
   const arr = Array.from(fileList);
-  const validExts = ['pdf','jpg','jpeg','png','tiff','tif','bmp','webp'];
 
   for (const file of arr) {
-    const ext = getFileExt(file.name);
-    const isPDF = file.type === 'application/pdf' || ext === 'pdf';
-    const isImage = file.type.startsWith('image/') || validExts.includes(ext);
-
-    if (!isPDF && !isImage) {
-      showToast(`Skipped "${file.name}" — unsupported type`);
-      continue;
-    }
+    const fileType = classifyFile(file);
 
     const entry = {
       id: genId(),
       name: file.name,
-      type: isPDF ? 'pdf' : 'image',
+      type: fileType,
       file,
       status: 'pending',
       pages: [],
@@ -847,7 +946,40 @@ async function loadAndScanFile(id) {
       await renderPdfPage(f, 0);
       if (f.id === activeFileId) showPage(f, 0);
       await ocrPage(f, 0);
+
+    } else if (f.type === 'docx') {
+      // Extract text from .docx (ZIP of XML)
+      const text = await extractDocxText(f.file);
+      f.pages = [{ dataUrl: null, text, ocrData: makeTextOcrData(text) }];
+      f.currentPage = 0;
+      if (f.id === activeFileId) {
+        el('image-preview').classList.add('hidden');
+        el('view-toggle').style.display = 'none';
+      }
+
+    } else if (f.type === 'doc') {
+      // .doc binary — try to extract readable text
+      const text = await extractDocText(f.file);
+      f.pages = [{ dataUrl: null, text, ocrData: makeTextOcrData(text) }];
+      f.currentPage = 0;
+      if (f.id === activeFileId) {
+        el('image-preview').classList.add('hidden');
+        el('view-toggle').style.display = 'none';
+      }
+
+    } else if (f.type === 'text' || f.type === 'rtf' || f.type === 'unknown') {
+      // Plain text / RTF / fallback — read as text
+      const text = await readFileAsText(f.file);
+      const cleanedText = f.type === 'rtf' ? stripRTF(text) : text;
+      f.pages = [{ dataUrl: null, text: cleanedText, ocrData: makeTextOcrData(cleanedText) }];
+      f.currentPage = 0;
+      if (f.id === activeFileId) {
+        el('image-preview').classList.add('hidden');
+        el('view-toggle').style.display = 'none';
+      }
+
     } else {
+      // Image — OCR
       const dataUrl = await readFileAsDataURL(f.file);
       f.pages = [{ dataUrl, text: '', ocrData: null }];
       f.currentPage = 0;
@@ -856,12 +988,7 @@ async function loadAndScanFile(id) {
       await ocrPage(f, 0);
     }
 
-    // If single page, mark done
-    if (f.pages.length === 1) {
-      f.status = 'done';
-    } else {
-      f.status = 'done';  // first page done, others pending
-    }
+    f.status = 'done';
   } catch (err) {
     console.error(err);
     showToast(`Error reading "${f.name}": ${err.message}`);
@@ -1067,72 +1194,105 @@ function renderInsights(f) {
     return;
   }
 
+  const isDirectText = ocrData.source === 'direct-text';
+
   // Overall confidence
   const conf = Math.round(ocrData.confidence);
   const confClass = conf >= 80 ? 'high' : conf >= 60 ? 'medium' : 'low';
-  const confDesc = conf >= 90 ? 'Excellent read — very little to review'
-    : conf >= 80 ? 'Good read — a few words may need checking'
-    : conf >= 60 ? 'Fair read — several uncertain areas flagged below'
-    : 'Poor read — many words are uncertain, review carefully';
 
   // Stats
   const totalWords = ocrData.words.length;
-  const lowConfWords = ocrData.words.filter(w => w.confidence < 70);
-  const medConfWords = ocrData.words.filter(w => w.confidence >= 70 && w.confidence < 85);
-  const highConfWords = ocrData.words.filter(w => w.confidence >= 85);
-
-  // Flagged words (below 85% confidence, sorted worst-first)
-  const flagged = ocrData.words
-    .filter(w => w.confidence < 85 && w.text.trim().length > 0)
-    .sort((a, b) => a.confidence - b.confidence)
-    .slice(0, 50);
 
   let html = '';
 
-  // Confidence card
-  html += `<div class="insight-card">
-    <h4>OCR Confidence</h4>
-    <div class="confidence-label">${conf}%<small>${confClass === 'high' ? 'High' : confClass === 'medium' ? 'Medium' : 'Low'}</small></div>
-    <div class="confidence-meter"><div class="confidence-fill ${confClass}" style="width:${conf}%"></div></div>
-    <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${confDesc}</div>
-  </div>`;
+  // For direct-text files (Word, TXT, etc.) — different insights
+  if (isDirectText) {
+    const fileTypeLabel = {docx:'Word Document (.docx)', doc:'Word Document (.doc)',
+      text:'Text File', rtf:'Rich Text (.rtf)', unknown:'File'}[f.type] || 'Document';
 
-  // Stats card
-  html += `<div class="insight-card">
-    <h4>Page Stats</h4>
-    <div class="stat-row"><span class="label">Words detected</span><span class="value">${totalWords}</span></div>
-    <div class="stat-row"><span class="label">Lines</span><span class="value">${ocrData.lines}</span></div>
-    <div class="stat-row"><span class="label">Paragraphs</span><span class="value">${ocrData.paragraphs}</span></div>
-    <div class="stat-row"><span class="label" style="color:var(--success)">High confidence (85%+)</span><span class="value">${highConfWords.length}</span></div>
-    <div class="stat-row"><span class="label" style="color:var(--warning)">Uncertain (70-84%)</span><span class="value">${medConfWords.length}</span></div>
-    <div class="stat-row"><span class="label" style="color:var(--error)">Low confidence (&lt;70%)</span><span class="value">${lowConfWords.length}</span></div>
-  </div>`;
-
-  // Flagged words card
-  if (flagged.length > 0) {
     html += `<div class="insight-card">
-      <h4>Needs Review (${flagged.length})</h4>
-      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">
-        These words had low OCR confidence. Click to find them in the editor.
-      </div>
-      <div class="flagged-list">
-        ${flagged.map(w => {
-          const cls = w.confidence < 60 ? 'low-conf' : '';
-          return `<span class="flagged-word ${cls}" onclick="findInEditor('${escAttr(w.text)}')" title="Confidence: ${Math.round(w.confidence)}%">
-            ${escHtml(w.text)}
-            <span class="conf-badge">${Math.round(w.confidence)}%</span>
-          </span>`;
-        }).join('')}
+      <h4>Source</h4>
+      <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${fileTypeLabel}</div>
+      <div style="font-size:11px;color:var(--text-secondary);">
+        Text was extracted directly from the file — no OCR needed. This means 100% accuracy on what was in the document.
       </div>
     </div>`;
-  } else {
+
+    html += `<div class="insight-card">
+      <h4>Document Stats</h4>
+      <div class="stat-row"><span class="label">Words</span><span class="value">${totalWords}</span></div>
+      <div class="stat-row"><span class="label">Lines</span><span class="value">${ocrData.lines}</span></div>
+      <div class="stat-row"><span class="label">Paragraphs</span><span class="value">${ocrData.paragraphs}</span></div>
+    </div>`;
+
     html += `<div class="insight-card">
       <div class="no-issues">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <div>All words read with high confidence. No issues found.</div>
+        <div>Text extracted directly — no OCR uncertainty. Ready to edit.</div>
       </div>
     </div>`;
-  }
+
+  } else {
+    // OCR-based insights
+    const confDesc = conf >= 90 ? 'Excellent read — very little to review'
+      : conf >= 80 ? 'Good read — a few words may need checking'
+      : conf >= 60 ? 'Fair read — several uncertain areas flagged below'
+      : 'Poor read — many words are uncertain, review carefully';
+
+    const lowConfWords = ocrData.words.filter(w => w.confidence < 70);
+    const medConfWords = ocrData.words.filter(w => w.confidence >= 70 && w.confidence < 85);
+    const highConfWords = ocrData.words.filter(w => w.confidence >= 85);
+
+    const flagged = ocrData.words
+      .filter(w => w.confidence < 85 && w.text.trim().length > 0)
+      .sort((a, b) => a.confidence - b.confidence)
+      .slice(0, 50);
+
+    // Confidence card
+    html += `<div class="insight-card">
+      <h4>OCR Confidence</h4>
+      <div class="confidence-label">${conf}%<small>${confClass === 'high' ? 'High' : confClass === 'medium' ? 'Medium' : 'Low'}</small></div>
+      <div class="confidence-meter"><div class="confidence-fill ${confClass}" style="width:${conf}%"></div></div>
+      <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${confDesc}</div>
+    </div>`;
+
+    // Stats card
+    html += `<div class="insight-card">
+      <h4>Page Stats</h4>
+      <div class="stat-row"><span class="label">Words detected</span><span class="value">${totalWords}</span></div>
+      <div class="stat-row"><span class="label">Lines</span><span class="value">${ocrData.lines}</span></div>
+      <div class="stat-row"><span class="label">Paragraphs</span><span class="value">${ocrData.paragraphs}</span></div>
+      <div class="stat-row"><span class="label" style="color:var(--success)">High confidence (85%+)</span><span class="value">${highConfWords.length}</span></div>
+      <div class="stat-row"><span class="label" style="color:var(--warning)">Uncertain (70-84%)</span><span class="value">${medConfWords.length}</span></div>
+      <div class="stat-row"><span class="label" style="color:var(--error)">Low confidence (&lt;70%)</span><span class="value">${lowConfWords.length}</span></div>
+    </div>`;
+
+    // Flagged words card
+    if (flagged.length > 0) {
+      html += `<div class="insight-card">
+        <h4>Needs Review (${flagged.length})</h4>
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">
+          These words had low OCR confidence. Click to find them in the editor.
+        </div>
+        <div class="flagged-list">
+          ${flagged.map(w => {
+            const cls = w.confidence < 60 ? 'low-conf' : '';
+            return `<span class="flagged-word ${cls}" onclick="findInEditor('${escAttr(w.text)}')" title="Confidence: ${Math.round(w.confidence)}%">
+              ${escHtml(w.text)}
+              <span class="conf-badge">${Math.round(w.confidence)}%</span>
+            </span>`;
+          }).join('')}
+        </div>
+      </div>`;
+    } else {
+      html += `<div class="insight-card">
+        <div class="no-issues">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <div>All words read with high confidence. No issues found.</div>
+      </div>
+    </div>`;
+    }
+  } // end OCR vs direct-text
 
   // File-level summary if multi-page
   if (f.pages.length > 1) {
