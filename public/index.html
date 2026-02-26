@@ -1008,10 +1008,26 @@ async function loadAndScanFile(id) {
       f.pages = new Array(numPages).fill(null).map(() => ({ dataUrl: null, text: '', ocrData: null }));
       f.currentPage = 0;
 
-      // Render and OCR first page
+      // Render first page immediately so user sees something
       await renderPdfPage(f, 0);
       if (f.id === activeFileId) showPage(f, 0);
-      await ocrPage(f, 0);
+
+      // Auto-scan ALL pages
+      for (let i = 0; i < numPages; i++) {
+        if (i > 0) await renderPdfPage(f, i);
+        await ocrPage(f, i, false); // false = don't auto-hide overlay between pages
+        // Progressively update the editor so user sees text appearing
+        if (f.id === activeFileId) {
+          assembleText(f);
+          updatePageNav(f);
+        }
+      }
+      computeFileConfidence(f);
+      showOCROverlay(false);
+      if (f.id === activeFileId) {
+        const totalWords = f.pages.reduce((n, p) => n + (p.ocrData?.words?.length || 0), 0);
+        el('status-text').textContent = `Scanned ${numPages} page${numPages > 1 ? 's' : ''} — ${totalWords} words detected`;
+      }
 
     } else if (f.type === 'docx') {
       // Extract text from .docx (ZIP of XML)
@@ -1081,7 +1097,7 @@ async function renderPdfPage(f, idx) {
   f.pages[idx].dataUrl = canvas.toDataURL('image/png');
 }
 
-async function ocrPage(f, idx) {
+async function ocrPage(f, idx, autoHide = true) {
   const page = f.pages[idx];
   if (!page.dataUrl) return;
 
@@ -1091,8 +1107,16 @@ async function ocrPage(f, idx) {
     const result = await Tesseract.recognize(page.dataUrl, 'eng', {
       logger: m => {
         if (m.status === 'recognizing text') {
-          setProgress(Math.round(m.progress * 100));
-          setOCRStatus('Reading text...');
+          // For multi-page: scale progress within each page's portion
+          const pageProgress = Math.round(m.progress * 100);
+          if (f.pages.length > 1) {
+            const overallProgress = Math.round(((idx + m.progress) / f.pages.length) * 100);
+            setProgress(overallProgress);
+            setOCRStatus(`Page ${idx + 1} of ${f.pages.length} — reading text... ${pageProgress}%`);
+          } else {
+            setProgress(pageProgress);
+            setOCRStatus('Reading text...');
+          }
         } else if (m.status === 'loading language traineddata') {
           setProgress(Math.round(m.progress * 30));
           setOCRStatus('Loading language data...');
@@ -1116,14 +1140,18 @@ async function ocrPage(f, idx) {
     // Compute overall confidence for the file
     computeFileConfidence(f);
 
-    setProgress(100);
-    setOCRStatus('Done!');
-    setTimeout(() => showOCROverlay(false), 400);
-    el('status-text').textContent = `Scanned — ${page.ocrData.words.length} words detected`;
+    if (autoHide) {
+      setProgress(100);
+      setOCRStatus('Done!');
+      setTimeout(() => showOCROverlay(false), 400);
+    }
+    el('status-text').textContent = f.pages.length > 1
+      ? `Scanned page ${idx + 1} of ${f.pages.length}`
+      : `Scanned — ${page.ocrData.words.length} words detected`;
 
   } catch (err) {
     console.error(err);
-    showOCROverlay(false);
+    if (autoHide) showOCROverlay(false);
     page.text = '[OCR failed]';
     showToast('Scan failed: ' + err.message);
   }
