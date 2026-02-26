@@ -914,6 +914,1115 @@ def rule_rewrite_loop(spec: Dict[str, Any]) -> List[RuleResult]:
         "Plan at least one rewrite pass focused on reader absorption and clarity.")]
 
 
+# =====================================================================
+# PANEL ARCHITECTURE ENGINE
+# =====================================================================
+#
+# Panels are not containers for dialogue. They are units of narrative
+# physics. You are bending time, focus, and emotional gravity.
+#
+# Every page must answer three questions:
+#   1. What is the emotional objective?
+#   2. What is the tempo?
+#   3. Where is the page-turn payoff?
+#
+# If those aren't clear, the page is structural filler.
+#
+# Based on O'Neil's craft framework:
+#   - Panel count = time compression or expansion
+#   - Panel size = emotional weight
+#   - Page turns = weaponized information
+#   - Layout = eye direction engineering
+#   - Shot composition = controlled perception
+# =====================================================================
+
+
+class PanelTransition(str, Enum):
+    """Scott McCloud's panel transition taxonomy.
+
+    Each transition type controls how the reader's brain fills the gutter
+    (the space between panels). The choice is not decorative — it determines
+    how much cognitive work the reader does and how time is perceived.
+    """
+    MOMENT_TO_MOMENT = "moment_to_moment"       # Minimal change, slows time (blinking, turning head)
+    ACTION_TO_ACTION = "action_to_action"        # Single subject, clear progression (punch → impact)
+    SUBJECT_TO_SUBJECT = "subject_to_subject"    # Cuts between subjects in same scene (speaker A → B)
+    SCENE_TO_SCENE = "scene_to_scene"            # Jump in time/space (requires reader inference)
+    ASPECT_TO_ASPECT = "aspect_to_aspect"        # Wandering eye, mood/atmosphere (clock, rain, face)
+    NON_SEQUITUR = "non_sequitur"                # No logical relationship (rare, experimental)
+
+
+class PanelWeight(str, Enum):
+    """How much visual real estate a panel commands on the page.
+
+    A larger panel implies importance. A small panel implies transitional
+    motion or a minor beat. If everything is the same size, nothing is
+    emphasized — and that's a choice too (steady rhythm, metronomic pacing).
+    """
+    QUARTER = "quarter"       # Small — transitional, quick beat, reaction shot
+    THIRD = "third"           # Standard — steady rhythm, workhorse panel
+    HALF = "half"             # Prominent — key moment, important dialogue
+    TWO_THIRDS = "two_thirds" # Dominant — major reveal, fight climax
+    FULL_WIDTH = "full_width" # Banner — establishing shot, dramatic beat
+    SPLASH = "splash"         # Full page — monumental, only if stakes justify it
+    DOUBLE_SPLASH = "double_splash"  # Two-page spread — nuclear option
+
+
+class Tempo(str, Enum):
+    """Page-level pacing control. Panel count IS tempo.
+
+    More panels on a page slow perceived time (reader lingers).
+    Fewer panels accelerate it (reader moves faster, feels urgency).
+    """
+    GLACIAL = "glacial"         # 7-9 panels: hyper-detailed, moment-by-moment breakdown
+    STEADY = "steady"           # 5-6 panels: controlled, standard comics rhythm
+    BRISK = "brisk"             # 3-4 panels: accelerating, dramatic compression
+    EXPLOSIVE = "explosive"     # 1-2 panels: monumental, splash territory
+    DECOMPRESSED = "decompressed"  # 3-4 large panels: slow, emotional, breathing room
+
+
+class ShotType(str, Enum):
+    """Camera framing — not just what is shown, but HOW it is shown.
+
+    Each shot carries emotional meaning independent of content.
+    When the emotional meaning depends on framing, you specify it.
+    """
+    ESTABLISHING = "establishing"    # Wide: where are we? Scale, context, geography
+    WIDE = "wide"                    # Full figures, environment visible — scale or isolation
+    MEDIUM = "medium"                # Waist up — conversation, neutral, workhorse
+    MEDIUM_CLOSE = "medium_close"    # Chest up — engaged, personal
+    CLOSE = "close"                  # Face — intimacy or intensity
+    EXTREME_CLOSE = "extreme_close"  # Detail — eyes, hands, object — maximum intensity
+    OVER_SHOULDER = "over_shoulder"  # Confrontation, tension, power dynamic visible
+    LOW_ANGLE = "low_angle"          # Subject looks powerful, dominant, threatening
+    HIGH_ANGLE = "high_angle"        # Subject looks vulnerable, small, trapped
+    BIRDS_EYE = "birds_eye"          # God's view — shows the whole board, strategic
+    WORMS_EYE = "worms_eye"          # Ground level — dramatic, imposing
+    DUTCH_ANGLE = "dutch_angle"      # Tilted — disorientation, unease, wrongness
+    INSERT = "insert"                # Object detail — the gun, the letter, the clock
+
+
+class PageLayout(str, Enum):
+    """How panels are arranged on the page — cognitive choreography.
+
+    Readers in Western comics read left-to-right, top-to-bottom.
+    Layout must guide that flow without confusion. If a reader pauses
+    to decode panel order, you have broken immersion.
+    """
+    GRID_REGULAR = "grid_regular"          # Even grid (2x3, 3x3) — steady, metronomic
+    GRID_VARIED = "grid_varied"            # Grid with varied sizes — emphasis within order
+    VERTICAL_STACK = "vertical_stack"      # Panels stacked top-to-bottom — descent, falling
+    HORIZONTAL_BANDS = "horizontal_bands"  # Wide panels stacked — panoramic, cinematic
+    L_SHAPE = "l_shape"                    # One large + smaller panels — anchor + beats
+    T_SHAPE = "t_shape"                    # Top row + lower sections — establish then detail
+    DIAGONAL = "diagonal"                  # Panels on a diagonal — motion, dynamism
+    OVERLAPPING = "overlapping"            # Panels overlap — chaos, simultaneity, urgency
+    SPLASH_WITH_INSETS = "splash_insets"   # Full page image + small inset panels
+    FREE_FORM = "free_form"               # Panels break the grid — use sparingly
+
+
+class EmotionalObjective(str, Enum):
+    """What the page is doing to the reader's emotional state.
+
+    This is the 'why' of the page. Without a clear objective,
+    the page is structural filler.
+    """
+    ORIENT = "orient"           # Establish location, situation, stakes
+    ESCALATE = "escalate"       # Ratchet tension upward
+    BREATHE = "breathe"         # Give reader emotional space after intensity
+    REVEAL = "reveal"           # Deliver new information that changes everything
+    CONFRONT = "confront"       # Characters clash — the scene's engine
+    DECIDE = "decide"           # Character makes a choice under pressure
+    DEVASTATE = "devastate"     # The cost lands — emotional gut punch
+    PROPEL = "propel"           # Pure momentum — move to the next beat fast
+    REFLECT = "reflect"         # Quiet beat — character processes what happened
+    CLIMAX = "climax"           # The culmination — maximum intensity
+
+
+# ── Shot Sequence Patterns ────────────────────────────────────────────
+# How shots progress within a page to create specific emotional effects.
+# These are not random — each pattern is an engineered tension curve.
+
+SHOT_SEQUENCES = {
+    "tension_build": [
+        ShotType.WIDE, ShotType.MEDIUM, ShotType.MEDIUM_CLOSE,
+        ShotType.CLOSE, ShotType.EXTREME_CLOSE,
+    ],
+    "tension_release": [
+        ShotType.EXTREME_CLOSE, ShotType.CLOSE, ShotType.MEDIUM, ShotType.WIDE,
+    ],
+    "conversation_standard": [
+        ShotType.MEDIUM, ShotType.OVER_SHOULDER, ShotType.CLOSE,
+        ShotType.OVER_SHOULDER, ShotType.MEDIUM,
+    ],
+    "conversation_escalating": [
+        ShotType.MEDIUM, ShotType.MEDIUM_CLOSE, ShotType.CLOSE,
+        ShotType.CLOSE, ShotType.EXTREME_CLOSE,
+    ],
+    "action_sequence": [
+        ShotType.WIDE, ShotType.MEDIUM, ShotType.CLOSE,
+        ShotType.INSERT, ShotType.WIDE,
+    ],
+    "establishing_sequence": [
+        ShotType.BIRDS_EYE, ShotType.WIDE, ShotType.MEDIUM,
+        ShotType.CLOSE,
+    ],
+    "reveal_sequence": [
+        ShotType.CLOSE, ShotType.CLOSE, ShotType.MEDIUM,
+        ShotType.WIDE,  # pull back to show the full picture
+    ],
+    "horror_dread": [
+        ShotType.WIDE, ShotType.MEDIUM, ShotType.CLOSE,
+        ShotType.INSERT, ShotType.EXTREME_CLOSE,
+    ],
+    "power_shift": [
+        ShotType.LOW_ANGLE, ShotType.MEDIUM, ShotType.HIGH_ANGLE,
+    ],
+    "disorientation": [
+        ShotType.DUTCH_ANGLE, ShotType.EXTREME_CLOSE,
+        ShotType.BIRDS_EYE, ShotType.CLOSE,
+    ],
+    "aftermath": [
+        ShotType.WIDE, ShotType.MEDIUM, ShotType.CLOSE,
+        ShotType.WIDE,  # pull out, show the damage
+    ],
+    "intimacy": [
+        ShotType.MEDIUM, ShotType.MEDIUM_CLOSE, ShotType.CLOSE,
+        ShotType.CLOSE,
+    ],
+}
+
+
+# ── Tempo Rules ───────────────────────────────────────────────────────
+# Maps emotional objectives to recommended tempos and panel counts.
+
+TEMPO_MAP: Dict[str, Tuple[Tempo, int, int]] = {
+    # objective -> (tempo, min_panels, max_panels)
+    "orient":     (Tempo.STEADY, 4, 6),
+    "escalate":   (Tempo.BRISK, 3, 5),
+    "breathe":    (Tempo.DECOMPRESSED, 2, 4),
+    "reveal":     (Tempo.EXPLOSIVE, 1, 3),
+    "confront":   (Tempo.STEADY, 4, 6),
+    "decide":     (Tempo.BRISK, 3, 4),
+    "devastate":  (Tempo.EXPLOSIVE, 1, 2),
+    "propel":     (Tempo.BRISK, 4, 6),
+    "reflect":    (Tempo.DECOMPRESSED, 2, 4),
+    "climax":     (Tempo.EXPLOSIVE, 1, 3),
+}
+
+# ── Layout Recommendations ────────────────────────────────────────────
+# Maps tempo + panel count to recommended page layouts.
+
+LAYOUT_MAP: Dict[Tuple[Tempo, int], List[PageLayout]] = {
+    (Tempo.GLACIAL, 7):    [PageLayout.GRID_REGULAR],
+    (Tempo.GLACIAL, 8):    [PageLayout.GRID_REGULAR],
+    (Tempo.GLACIAL, 9):    [PageLayout.GRID_REGULAR],
+    (Tempo.STEADY, 5):     [PageLayout.GRID_VARIED, PageLayout.T_SHAPE],
+    (Tempo.STEADY, 6):     [PageLayout.GRID_REGULAR, PageLayout.GRID_VARIED],
+    (Tempo.BRISK, 3):      [PageLayout.HORIZONTAL_BANDS, PageLayout.VERTICAL_STACK],
+    (Tempo.BRISK, 4):      [PageLayout.L_SHAPE, PageLayout.GRID_VARIED],
+    (Tempo.BRISK, 5):      [PageLayout.GRID_VARIED, PageLayout.T_SHAPE],
+    (Tempo.EXPLOSIVE, 1):  [PageLayout.SPLASH_WITH_INSETS],
+    (Tempo.EXPLOSIVE, 2):  [PageLayout.HORIZONTAL_BANDS, PageLayout.L_SHAPE],
+    (Tempo.DECOMPRESSED, 2): [PageLayout.HORIZONTAL_BANDS],
+    (Tempo.DECOMPRESSED, 3): [PageLayout.VERTICAL_STACK, PageLayout.HORIZONTAL_BANDS],
+    (Tempo.DECOMPRESSED, 4): [PageLayout.GRID_VARIED, PageLayout.L_SHAPE],
+}
+
+
+# ── Panel Weight Distribution ─────────────────────────────────────────
+# Given N panels on a page, how to distribute visual weight.
+
+def distribute_panel_weights(
+    panel_count: int,
+    objective: str,
+    has_key_moment: bool = False,
+) -> List[PanelWeight]:
+    """Distribute visual weight across panels on a page.
+
+    The key principle: a larger panel implies importance.
+    If everything is the same size, nothing is emphasized.
+    """
+    if panel_count == 1:
+        return [PanelWeight.SPLASH]
+    if panel_count == 2:
+        if has_key_moment:
+            return [PanelWeight.THIRD, PanelWeight.TWO_THIRDS]
+        return [PanelWeight.HALF, PanelWeight.HALF]
+
+    weights: List[PanelWeight] = []
+
+    if objective in ("reveal", "devastate", "climax"):
+        # Key moment gets the biggest panel, others are smaller
+        for i in range(panel_count):
+            if i == panel_count - 1:  # Last panel = the punch
+                weights.append(PanelWeight.HALF if panel_count <= 4 else PanelWeight.TWO_THIRDS)
+            else:
+                weights.append(PanelWeight.QUARTER if panel_count > 4 else PanelWeight.THIRD)
+    elif objective in ("orient", "confront"):
+        # First panel establishes, rest are even
+        weights.append(PanelWeight.HALF if panel_count <= 4 else PanelWeight.FULL_WIDTH)
+        for _ in range(panel_count - 1):
+            weights.append(PanelWeight.THIRD if panel_count <= 5 else PanelWeight.QUARTER)
+    elif objective in ("breathe", "reflect"):
+        # Even distribution, generous sizing
+        for _ in range(panel_count):
+            weights.append(PanelWeight.HALF if panel_count <= 3 else PanelWeight.THIRD)
+    elif objective in ("escalate", "propel"):
+        # Progressive compression: panels get smaller = acceleration
+        for i in range(panel_count):
+            ratio = i / max(1, panel_count - 1)
+            if ratio < 0.3:
+                weights.append(PanelWeight.HALF)
+            elif ratio < 0.7:
+                weights.append(PanelWeight.THIRD)
+            else:
+                weights.append(PanelWeight.QUARTER)
+    else:
+        # Default: standard grid
+        for _ in range(panel_count):
+            weights.append(PanelWeight.THIRD)
+
+    return weights
+
+
+# ── Transition Selection ──────────────────────────────────────────────
+
+def select_panel_transition(
+    prev_panel: Optional[Dict[str, Any]],
+    curr_panel: Dict[str, Any],
+    page_objective: str,
+) -> PanelTransition:
+    """Determine the transition type between two consecutive panels.
+
+    The transition type controls what happens in the gutter — the space
+    between panels where the reader's brain fills in the gap.
+    """
+    if prev_panel is None:
+        return PanelTransition.SCENE_TO_SCENE  # First panel on page
+
+    prev_art = (prev_panel.get("art") or "").lower()
+    curr_art = (curr_panel.get("art") or "").lower()
+
+    # Check for scene/location change
+    prev_loc = prev_panel.get("location") or ""
+    curr_loc = curr_panel.get("location") or ""
+    if prev_loc and curr_loc and prev_loc != curr_loc:
+        return PanelTransition.SCENE_TO_SCENE
+
+    # Check for subject change (different speakers or focus characters)
+    prev_chars = set(safe_list(prev_panel.get("characters", [])))
+    curr_chars = set(safe_list(curr_panel.get("characters", [])))
+    if prev_chars and curr_chars and not prev_chars.intersection(curr_chars):
+        return PanelTransition.SUBJECT_TO_SUBJECT
+
+    # Mood/atmosphere pages
+    if page_objective in ("breathe", "reflect"):
+        silent_curr = (curr_panel.get("silent_intent") or "").strip()
+        if silent_curr:
+            return PanelTransition.ASPECT_TO_ASPECT
+
+    # Action scenes
+    if page_objective in ("escalate", "propel", "climax"):
+        return PanelTransition.ACTION_TO_ACTION
+
+    # Slow, intimate scenes
+    if page_objective in ("devastate", "decide"):
+        return PanelTransition.MOMENT_TO_MOMENT
+
+    # Conversation default
+    return PanelTransition.SUBJECT_TO_SUBJECT
+
+
+# ── Shot Sequence Selection ───────────────────────────────────────────
+
+def select_shot_sequence(
+    objective: str,
+    panel_count: int,
+    scene_context: Optional[Dict[str, Any]] = None,
+) -> List[ShotType]:
+    """Pick the right shot progression for a page's emotional objective.
+
+    Shot sequencing is how you engineer tension. Wide → medium → close
+    ratchets focus. Close → wide releases it. The sequence is the
+    emotional arc of the page itself.
+    """
+    purpose = ""
+    if scene_context:
+        purpose = (scene_context.get("purpose") or "").lower()
+
+    # Map objective to sequence name
+    seq_name = "tension_build"  # default
+    if objective == "orient":
+        seq_name = "establishing_sequence"
+    elif objective == "escalate":
+        seq_name = "tension_build" if "confront" not in purpose else "conversation_escalating"
+    elif objective == "breathe":
+        seq_name = "tension_release"
+    elif objective == "reveal":
+        seq_name = "reveal_sequence"
+    elif objective == "confront":
+        seq_name = "conversation_escalating" if panel_count >= 4 else "power_shift"
+    elif objective == "decide":
+        seq_name = "intimacy"
+    elif objective == "devastate":
+        seq_name = "aftermath"
+    elif objective == "propel":
+        seq_name = "action_sequence"
+    elif objective == "reflect":
+        seq_name = "tension_release"
+    elif objective == "climax":
+        seq_name = "tension_build"
+
+    sequence = list(SHOT_SEQUENCES.get(seq_name, SHOT_SEQUENCES["tension_build"]))
+
+    # Adjust sequence length to match panel count
+    if len(sequence) > panel_count:
+        # Take evenly spaced samples
+        step = len(sequence) / panel_count
+        sequence = [sequence[min(len(sequence) - 1, int(i * step))] for i in range(panel_count)]
+    elif len(sequence) < panel_count:
+        # Extend by repeating the last shot type with variation
+        while len(sequence) < panel_count:
+            sequence.append(sequence[-1])
+
+    return sequence
+
+
+# ── Page Architecture ─────────────────────────────────────────────────
+
+@dataclass
+class PanelArchitecture:
+    """Complete architecture for a single panel within a page."""
+    panel_index: int
+    shot: ShotType
+    weight: PanelWeight
+    transition_in: PanelTransition
+    is_key_moment: bool = False
+    silent: bool = False
+    notes: str = ""
+
+
+@dataclass
+class PageArchitecture:
+    """Complete architecture for a page — the blueprint before content.
+
+    This answers the three questions every page must answer:
+    1. What is the emotional objective?
+    2. What is the tempo?
+    3. Where is the page-turn payoff?
+    """
+    page_no: int
+    objective: EmotionalObjective
+    tempo: Tempo
+    panel_count: int
+    layout: PageLayout
+    panels: List[PanelArchitecture]
+    page_turn_payoff: str = ""         # What the reader gets for turning to this page
+    page_exit_tension: str = ""        # What pulls the reader to turn to the next page
+    is_right_page: bool = False        # Right-hand pages = cliffhanger position
+    is_left_page: bool = False         # Left-hand pages = reveal position
+
+
+def architect_page(
+    page_no: int,
+    objective: str,
+    scene_context: Optional[Dict[str, Any]] = None,
+    has_key_moment: bool = False,
+    forced_panel_count: Optional[int] = None,
+    rng: Optional[random.Random] = None,
+) -> PageArchitecture:
+    """Build the full architecture for a page from its emotional objective.
+
+    This is the core function. It takes *what the page needs to do*
+    and produces *how the page should be structured* — panel count,
+    shot sequence, weight distribution, layout, and transitions.
+    """
+    rng = rng or random.Random()
+    obj_key = objective if objective in TEMPO_MAP else "orient"
+
+    tempo, min_panels, max_panels = TEMPO_MAP[obj_key]
+    if forced_panel_count is not None:
+        panel_count = max(1, min(9, forced_panel_count))
+    else:
+        panel_count = rng.randint(min_panels, max_panels)
+
+    # Select layout
+    layout_options = LAYOUT_MAP.get((tempo, panel_count))
+    if not layout_options:
+        # Fallback: find closest match
+        layout_options = [PageLayout.GRID_VARIED]
+        for (t, pc), layouts in LAYOUT_MAP.items():
+            if t == tempo and abs(pc - panel_count) <= 1:
+                layout_options = layouts
+                break
+    layout = rng.choice(layout_options)
+
+    # Build shot sequence
+    shots = select_shot_sequence(obj_key, panel_count, scene_context)
+
+    # Build weight distribution
+    weights = distribute_panel_weights(panel_count, obj_key, has_key_moment)
+
+    # Assemble panel architectures
+    panels: List[PanelArchitecture] = []
+    for i in range(panel_count):
+        is_key = has_key_moment and (i == panel_count - 1)
+        transition = PanelTransition.SCENE_TO_SCENE if i == 0 else PanelTransition.ACTION_TO_ACTION
+        panels.append(PanelArchitecture(
+            panel_index=i,
+            shot=shots[i] if i < len(shots) else ShotType.MEDIUM,
+            weight=weights[i] if i < len(weights) else PanelWeight.THIRD,
+            transition_in=transition,
+            is_key_moment=is_key,
+        ))
+
+    # Page position (odd = right page, even = left page in Western comics)
+    is_right = (page_no % 2 == 1)
+    is_left = not is_right
+
+    try:
+        obj_enum = EmotionalObjective(obj_key)
+    except ValueError:
+        obj_enum = EmotionalObjective.ORIENT
+
+    return PageArchitecture(
+        page_no=page_no,
+        objective=obj_enum,
+        tempo=tempo,
+        panel_count=panel_count,
+        layout=layout,
+        panels=panels,
+        is_right_page=is_right,
+        is_left_page=is_left,
+    )
+
+
+# ── Issue-Level Architecture ─────────────────────────────────────────
+
+def architect_issue(
+    spec: Dict[str, Any],
+    rng: Optional[random.Random] = None,
+) -> Dict[str, Any]:
+    """Build a Panel Architecture Matrix for an entire issue.
+
+    Maps issue-by-issue panel density, splash frequency ceilings,
+    and page-turn strike points so the arc escalates mathematically
+    rather than intuitively.
+    """
+    rng = rng or random.Random(42)
+    pages = get_pages(spec)
+    scenes = get_scenes(spec)
+    beats = safe_list(spec.get("beats"))
+    total_pages = len(pages)
+
+    if total_pages == 0:
+        return {"pages": [], "metrics": {}}
+
+    # Build scene index by page number
+    scene_by_page: Dict[int, Dict[str, Any]] = {}
+    for s in scenes:
+        pno = s.get("page_no")
+        if isinstance(pno, int):
+            scene_by_page[pno] = s
+
+    # Determine emotional arc across pages
+    page_objectives: List[str] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        scene = scene_by_page.get(page_no, {})
+        purpose = (scene.get("purpose") or "").lower()
+
+        # Map scene purpose to emotional objective
+        position = i / max(1, total_pages - 1)  # 0.0 to 1.0
+
+        if page.get("page_type", "normal") in ("splash", "full_page_shot"):
+            obj = "reveal" if position > 0.3 else "orient"
+        elif "disturbance" in purpose or "inciting" in purpose:
+            obj = "escalate"
+        elif "escalation" in purpose:
+            obj = "escalate"
+        elif "reversal" in purpose or "reveal" in purpose:
+            obj = "reveal"
+        elif "decision" in purpose or "cost" in purpose:
+            obj = "decide"
+        elif "payoff" in purpose or "climax" in purpose:
+            obj = "climax"
+        elif "resolution" in purpose:
+            obj = "breathe"
+        elif position < 0.1:
+            obj = "orient"
+        elif position < 0.25:
+            obj = "escalate"
+        elif position < 0.4:
+            obj = "confront"
+        elif position < 0.55:
+            obj = "escalate"
+        elif position < 0.7:
+            obj = "decide"
+        elif position < 0.85:
+            obj = "climax"
+        elif position < 0.95:
+            obj = "devastate"
+        else:
+            obj = "reflect"
+
+        # Override: page-turn reveals should be on right-hand pages
+        if page.get("page_turn_reveal"):
+            obj = "reveal"
+
+        page_objectives.append(obj)
+
+    # Build architectures
+    page_architectures: List[Dict[str, Any]] = []
+    total_panels = 0
+    splash_count = 0
+    tempo_distribution: Dict[str, int] = {}
+
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        obj = page_objectives[i]
+        scene = scene_by_page.get(page_no, {})
+
+        # Check if page has a key dramatic moment
+        has_key = bool(page.get("page_turn_reveal")) or obj in ("reveal", "climax", "devastate")
+
+        # Use existing panel count if present, otherwise let the engine decide
+        existing_panels = safe_list(page.get("panels"))
+        forced_count = len(existing_panels) if existing_panels else None
+
+        arch = architect_page(
+            page_no=page_no,
+            objective=obj,
+            scene_context=scene,
+            has_key_moment=has_key,
+            forced_panel_count=forced_count,
+            rng=rng,
+        )
+
+        # Page-turn strategy
+        if arch.is_right_page:
+            arch.page_exit_tension = "RIGHT PAGE: End on tension — cliffhanger position."
+        if arch.is_left_page:
+            arch.page_turn_payoff = "LEFT PAGE: Reveal position — deliver the detonation."
+
+        # Track metrics
+        total_panels += arch.panel_count
+        if arch.panel_count <= 2:
+            splash_count += 1
+        tempo_distribution[arch.tempo.value] = tempo_distribution.get(arch.tempo.value, 0) + 1
+
+        page_architectures.append({
+            "page_no": arch.page_no,
+            "objective": arch.objective.value,
+            "tempo": arch.tempo.value,
+            "panel_count": arch.panel_count,
+            "layout": arch.layout.value,
+            "is_right_page": arch.is_right_page,
+            "is_left_page": arch.is_left_page,
+            "page_turn_payoff": arch.page_turn_payoff,
+            "page_exit_tension": arch.page_exit_tension,
+            "panels": [
+                {
+                    "index": p.panel_index,
+                    "shot": p.shot.value,
+                    "weight": p.weight.value,
+                    "transition_in": p.transition_in.value,
+                    "is_key_moment": p.is_key_moment,
+                }
+                for p in arch.panels
+            ],
+        })
+
+    avg_panels = total_panels / max(1, total_pages)
+    splash_ratio = splash_count / max(1, total_pages)
+
+    metrics = {
+        "total_pages": total_pages,
+        "total_panels": total_panels,
+        "avg_panels_per_page": round(avg_panels, 2),
+        "splash_or_minimal_pages": splash_count,
+        "splash_ratio": round(splash_ratio, 3),
+        "splash_budget_ok": splash_ratio <= 0.15,  # Max ~15% splash pages
+        "tempo_distribution": tempo_distribution,
+        "objectives": {obj: page_objectives.count(obj) for obj in set(page_objectives)},
+    }
+
+    return {
+        "pages": page_architectures,
+        "metrics": metrics,
+    }
+
+
+# ── Panel Architecture Rules ─────────────────────────────────────────
+# These rules evaluate whether the paneling architecture is sound.
+
+
+def rule_panel_tempo_coherence(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check that panel counts match the emotional objectives of pages.
+
+    Six → Five → Four → Three: readers subconsciously feel acceleration.
+    If panel count doesn't correlate with scene intensity, the pacing
+    is fighting the content.
+    """
+    pages = get_pages(spec)
+    if len(pages) < 3:
+        return []
+
+    problems: List[str] = []
+    scenes = get_scenes(spec)
+    scene_by_page: Dict[int, Dict[str, Any]] = {}
+    for s in scenes:
+        pno = s.get("page_no")
+        if isinstance(pno, int):
+            scene_by_page[pno] = s
+
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        panels = safe_list(page.get("panels"))
+        count = len(panels)
+        page_type = (page.get("page_type") or "normal").lower()
+        scene = scene_by_page.get(page_no, {})
+        purpose = (scene.get("purpose") or "").lower()
+
+        # Splash pages with too many panels defeat their purpose
+        if page_type in ("splash", "full_page_shot") and count > 3:
+            problems.append(
+                f"Page {page_no}: splash page has {count} panels — splash means monumental, not crowded."
+            )
+
+        # Climactic scenes should not be 7+ panel grids
+        if any(k in purpose for k in ("climax", "payoff", "reveal", "reversal")):
+            if count > 5:
+                problems.append(
+                    f"Page {page_no}: {purpose} scene has {count} panels — "
+                    f"compress to 3-4 for impact (fewer panels = more dramatic weight)."
+                )
+
+        # Quiet/reflective scenes should not be dense grids
+        if any(k in purpose for k in ("resolution", "breath", "aftermath")):
+            if count > 5:
+                problems.append(
+                    f"Page {page_no}: reflective scene has {count} panels — "
+                    f"decompress to 2-4 (give the reader space to feel)."
+                )
+
+    if problems:
+        return [make_result(
+            rule_id="PANEL.TEMPO_COHERENCE",
+            priority=Priority.P3_DRAMA_AND_PACING,
+            level=Level.WARN,
+            message="Panel counts fight their pages' emotional objectives.",
+            evidence={"problems": problems[:20]},
+        )]
+    return [make_result(
+        rule_id="PANEL.TEMPO_COHERENCE",
+        priority=Priority.P3_DRAMA_AND_PACING,
+        level=Level.PASS,
+        message="Panel tempo coherent with page objectives.",
+    )]
+
+
+def rule_panel_shot_variety(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check that shot types vary across pages — monotone framing kills energy.
+
+    If every panel is a medium shot, nothing is emphasized. Shot variety
+    is how you control what the reader focuses on.
+    """
+    pages = get_pages(spec)
+    if not pages:
+        return []
+
+    monotone_pages: List[str] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        panels = safe_list(page.get("panels"))
+        if len(panels) < 3:
+            continue
+
+        shots = []
+        for panel in panels:
+            art = (panel.get("art") or "").lower()
+            shot = (panel.get("shot") or "").lower()
+            combined = art + " " + shot
+            # Detect shot type from art direction text
+            if any(k in combined for k in ("close-up", "close up", "closeup", "extreme close")):
+                shots.append("close")
+            elif any(k in combined for k in ("wide", "establishing", "bird")):
+                shots.append("wide")
+            elif any(k in combined for k in ("over-the-shoulder", "over shoulder", "ots")):
+                shots.append("ots")
+            elif any(k in combined for k in ("medium",)):
+                shots.append("medium")
+            elif any(k in combined for k in ("low angle", "worm")):
+                shots.append("low")
+            elif any(k in combined for k in ("high angle",)):
+                shots.append("high")
+            else:
+                shots.append("unspecified")
+
+        unique_shots = set(shots)
+        if len(unique_shots) == 1 and len(panels) >= 3:
+            monotone_pages.append(
+                f"Page {page_no}: all {len(panels)} panels use '{shots[0]}' framing."
+            )
+
+    if monotone_pages:
+        return [make_result(
+            rule_id="PANEL.SHOT_VARIETY",
+            priority=Priority.P2_COMICS_SPECIFICITY,
+            level=Level.WARN,
+            message="Monotone shot selection detected — vary framing to control reader focus.",
+            evidence={"pages": monotone_pages[:15]},
+        )]
+    return [make_result(
+        rule_id="PANEL.SHOT_VARIETY",
+        priority=Priority.P2_COMICS_SPECIFICITY,
+        level=Level.PASS,
+        message="Shot variety acceptable.",
+    )]
+
+
+def rule_panel_weight_distribution(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check that panel sizing serves the narrative — not everything is equal.
+
+    If all panels are the same size on every page, nothing gets emphasis.
+    Key moments need bigger panels. Transitions need smaller ones.
+    """
+    pages = get_pages(spec)
+    if not pages:
+        return []
+
+    problems: List[str] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        panels = safe_list(page.get("panels"))
+        if len(panels) < 3:
+            continue
+
+        # Check if any panel has weight/size annotations
+        weights = [p.get("weight") or p.get("size") or "" for p in panels]
+        has_weights = any(w for w in weights)
+
+        # If page has a page_turn_reveal but no panel is marked as key/large
+        if page.get("page_turn_reveal") and not has_weights:
+            problems.append(
+                f"Page {page_no}: tagged as page-turn reveal but no panel is sized for emphasis. "
+                f"The reveal panel should be larger than surrounding panels."
+            )
+
+    if problems:
+        return [make_result(
+            rule_id="PANEL.WEIGHT_DISTRIBUTION",
+            priority=Priority.P3_DRAMA_AND_PACING,
+            level=Level.WARN,
+            message="Panel weight/sizing not specified for key pages.",
+            evidence={"problems": problems[:15]},
+        )]
+    return [make_result(
+        rule_id="PANEL.WEIGHT_DISTRIBUTION",
+        priority=Priority.P3_DRAMA_AND_PACING,
+        level=Level.PASS,
+        message="Panel weight distribution acceptable.",
+    )]
+
+
+def rule_page_turn_positioning(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check that page-turn reveals land on the correct physical page.
+
+    The most powerful reveal in comics is at the turn of a page.
+    Right-hand page cliffhangers. Left-hand page reveals.
+    If a reveal happens mid-page, it leaks energy.
+    If it happens after a page turn, it detonates.
+    """
+    pages = get_pages(spec)
+    if len(pages) < 4:
+        return []
+
+    misplaced: List[str] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        if not page.get("page_turn_reveal"):
+            continue
+
+        # In Western comics: odd pages are right-hand, even are left-hand
+        # The REVEAL should land on a left-hand (even) page — what you see after turning
+        # The CLIFFHANGER should be on a right-hand (odd) page — what pushes you to turn
+        is_even = (page_no % 2 == 0)
+        if not is_even:
+            misplaced.append(
+                f"Page {page_no}: reveal tagged on right-hand (odd) page. "
+                f"Reveals detonate on LEFT-hand (even) pages — "
+                f"the reader turns and BAM. Move the reveal to page {page_no + 1} "
+                f"and use page {page_no} as the cliffhanger lead-in."
+            )
+
+    if misplaced:
+        return [make_result(
+            rule_id="PANEL.PAGE_TURN_POSITION",
+            priority=Priority.P4_TRANSITIONS,
+            level=Level.WARN,
+            message="Page-turn reveals mispositioned — reveals should land on left-hand (even) pages.",
+            evidence={"misplaced": misplaced[:10]},
+        )]
+    return [make_result(
+        rule_id="PANEL.PAGE_TURN_POSITION",
+        priority=Priority.P4_TRANSITIONS,
+        level=Level.PASS,
+        message="Page-turn reveal positioning correct.",
+    )]
+
+
+def rule_splash_budget(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Enforce splash page discipline — splashes must earn their space.
+
+    A full-page splash should only be used when the narrative justifies it.
+    If used casually, it becomes noise. If it doesn't shift stakes, reveal
+    scale, or reframe understanding, it's indulgence.
+
+    Budget: max ~15% of pages should be splash/minimal (1-2 panels).
+    """
+    pages = get_pages(spec)
+    if len(pages) < 5:
+        return []
+
+    splash_pages: List[int] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        panels = safe_list(page.get("panels"))
+        page_type = (page.get("page_type") or "normal").lower()
+        if page_type in ("splash", "full_page_shot") or len(panels) <= 2:
+            splash_pages.append(page_no)
+
+    ratio = len(splash_pages) / len(pages)
+    if ratio > 0.20:
+        return [make_result(
+            rule_id="PANEL.SPLASH_BUDGET",
+            priority=Priority.P2_COMICS_SPECIFICITY,
+            level=Level.WARN,
+            message=f"Splash/minimal pages at {round(ratio*100)}% ({len(splash_pages)}/{len(pages)}) — "
+                    f"above 15-20% ceiling. Each splash must shift stakes, reveal scale, or reframe understanding.",
+            evidence={"splash_pages": splash_pages, "ratio": round(ratio, 3)},
+        )]
+    return [make_result(
+        rule_id="PANEL.SPLASH_BUDGET",
+        priority=Priority.P2_COMICS_SPECIFICITY,
+        level=Level.PASS,
+        message=f"Splash budget OK ({len(splash_pages)}/{len(pages)}, {round(ratio*100)}%).",
+    )]
+
+
+def rule_panel_transition_awareness(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check that transitions between panels are intentional, not accidental.
+
+    Every panel-to-panel cut is a choice: moment-to-moment slows time,
+    action-to-action moves plot, subject-to-subject shifts focus,
+    scene-to-scene jumps context. If the spec has no transition
+    annotations, the writer isn't thinking about gutters.
+    """
+    pages = get_pages(spec)
+    if not pages:
+        return []
+
+    total_panels = 0
+    annotated_transitions = 0
+    for page in pages:
+        panels = safe_list(page.get("panels"))
+        total_panels += len(panels)
+        for panel in panels:
+            if panel.get("transition") or panel.get("transition_in"):
+                annotated_transitions += 1
+
+    if total_panels > 10 and annotated_transitions == 0:
+        return [make_result(
+            rule_id="PANEL.TRANSITION_AWARENESS",
+            priority=Priority.P5_STRUCTURE_SHAPE,
+            level=Level.NOTE,
+            message=f"No panel transition types annotated across {total_panels} panels. "
+                    f"Consider specifying transitions (moment_to_moment, action_to_action, "
+                    f"subject_to_subject, scene_to_scene, aspect_to_aspect) to control "
+                    f"how the reader's brain fills the gutters between panels.",
+        )]
+    return [make_result(
+        rule_id="PANEL.TRANSITION_AWARENESS",
+        priority=Priority.P5_STRUCTURE_SHAPE,
+        level=Level.PASS,
+        message="Panel transition annotations present.",
+    )]
+
+
+def rule_page_emotional_objective(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Every page must answer: what is the emotional objective?
+
+    If a page has no clear objective, it's structural filler. Pages without
+    an objective field or a scene purpose are drift — they exist without
+    justifying their existence.
+    """
+    pages = get_pages(spec)
+    if not pages:
+        return []
+
+    scenes = get_scenes(spec)
+    scene_by_page: Dict[int, Dict[str, Any]] = {}
+    for s in scenes:
+        pno = s.get("page_no")
+        if isinstance(pno, int):
+            scene_by_page[pno] = s
+
+    aimless: List[int] = []
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        has_objective = bool(page.get("objective") or page.get("emotional_objective"))
+        scene = scene_by_page.get(page_no, {})
+        has_purpose = bool((scene.get("purpose") or "").strip())
+
+        if not has_objective and not has_purpose:
+            aimless.append(page_no)
+
+    if len(aimless) > len(pages) * 0.3:
+        return [make_result(
+            rule_id="PANEL.PAGE_OBJECTIVE",
+            priority=Priority.P3_DRAMA_AND_PACING,
+            level=Level.WARN,
+            message=f"{len(aimless)} of {len(pages)} pages have no emotional objective or scene purpose. "
+                    f"Every page must answer: what is this page doing to the reader?",
+            evidence={"aimless_pages": aimless[:20]},
+        )]
+    return [make_result(
+        rule_id="PANEL.PAGE_OBJECTIVE",
+        priority=Priority.P3_DRAMA_AND_PACING,
+        level=Level.PASS,
+        message="Pages have emotional objectives or scene purposes.",
+    )]
+
+
+def rule_panel_progressive_tempo(spec: Dict[str, Any]) -> List[RuleResult]:
+    """Check for progressive tempo shifts across the issue.
+
+    The duel pattern from O'Neil: Six -> Five -> Four -> Three.
+    Panel count should progressively decrease toward climactic moments.
+    If panel density is flat across an entire issue, pacing never
+    accelerates — and that means the story never builds.
+    """
+    pages = get_pages(spec)
+    if len(pages) < 6:
+        return []
+
+    panel_counts = []
+    for page in pages:
+        panels = safe_list(page.get("panels"))
+        panel_counts.append(len(panels))
+
+    if not panel_counts:
+        return []
+
+    # Check if panel density is completely flat (no variation)
+    unique_counts = set(panel_counts)
+    if len(unique_counts) == 1:
+        return [make_result(
+            rule_id="PANEL.PROGRESSIVE_TEMPO",
+            priority=Priority.P3_DRAMA_AND_PACING,
+            level=Level.WARN,
+            message=f"Every page has exactly {panel_counts[0]} panels — flat pacing. "
+                    f"Vary panel count to control time: more panels = slower tempo, "
+                    f"fewer panels = faster/more dramatic. "
+                    f"Progressive reduction (6->5->4->3) toward climax creates acceleration.",
+            evidence={"panel_counts": panel_counts},
+        )]
+
+    # Check if the last third of the issue has any acceleration
+    third = max(1, len(panel_counts) // 3)
+    first_third_avg = sum(panel_counts[:third]) / max(1, third)
+    last_third_avg = sum(panel_counts[-third:]) / max(1, third)
+
+    # If the last third is denser than the first, tempo is backwards
+    if last_third_avg > first_third_avg + 1.0:
+        return [make_result(
+            rule_id="PANEL.PROGRESSIVE_TEMPO",
+            priority=Priority.P3_DRAMA_AND_PACING,
+            level=Level.NOTE,
+            message=f"Panel density increases toward the end "
+                    f"(first third avg: {round(first_third_avg, 1)}, last third avg: {round(last_third_avg, 1)}). "
+                    f"This slows the climax. Consider reducing panels in the final act for dramatic compression.",
+            evidence={"first_third_avg": round(first_third_avg, 1), "last_third_avg": round(last_third_avg, 1)},
+        )]
+
+    return [make_result(
+        rule_id="PANEL.PROGRESSIVE_TEMPO",
+        priority=Priority.P3_DRAMA_AND_PACING,
+        level=Level.PASS,
+        message="Progressive tempo shifts present.",
+    )]
+
+
+# ── Panel Architecture Rewriter Integration ───────────────────────────
+
+def apply_panel_architecture(spec: Dict[str, Any], rng: Optional[random.Random] = None) -> List[Dict[str, str]]:
+    """Apply the panel architecture engine to a spec, enriching pages
+    with objective, tempo, layout, shot, weight, and transition data.
+
+    Returns a list of actions taken (for the rewrite action log).
+    """
+    rng = rng or random.Random(42)
+    architecture = architect_issue(spec, rng=rng)
+    actions: List[Dict[str, str]] = []
+
+    pages = get_pages(spec)
+    arch_by_page: Dict[int, Dict[str, Any]] = {}
+    for pa in architecture.get("pages", []):
+        arch_by_page[pa["page_no"]] = pa
+
+    for i, page in enumerate(pages):
+        page_no = page.get("page_no", i + 1)
+        arch = arch_by_page.get(page_no)
+        if not arch:
+            continue
+
+        # Enrich page with architecture data
+        if not page.get("objective"):
+            page["objective"] = arch["objective"]
+            actions.append({
+                "location": f"page:{page_no}", "field": "objective",
+                "old_value": "(none)", "new_value": arch["objective"],
+                "reason": "Page lacked emotional objective; assigned from narrative position.",
+            })
+
+        if not page.get("tempo"):
+            page["tempo"] = arch["tempo"]
+
+        if not page.get("layout"):
+            page["layout"] = arch["layout"]
+            actions.append({
+                "location": f"page:{page_no}", "field": "layout",
+                "old_value": "(none)", "new_value": arch["layout"],
+                "reason": f"Layout assigned based on tempo ({arch['tempo']}) and panel count ({arch['panel_count']}).",
+            })
+
+        # Enrich panels with shot/weight/transition data
+        panels = safe_list(page.get("panels"))
+        for j, panel in enumerate(panels):
+            if j < len(arch["panels"]):
+                pa = arch["panels"][j]
+                if not panel.get("shot"):
+                    panel["shot"] = pa["shot"]
+                if not panel.get("weight"):
+                    panel["weight"] = pa["weight"]
+                if not panel.get("transition_in"):
+                    panel["transition_in"] = pa["transition_in"]
+                if pa.get("is_key_moment"):
+                    panel["is_key_moment"] = True
+
+        # Page-turn annotations
+        if arch.get("page_exit_tension") and not page.get("page_exit_tension"):
+            page["page_exit_tension"] = arch["page_exit_tension"]
+        if arch.get("page_turn_payoff") and not page.get("page_turn_payoff"):
+            page["page_turn_payoff"] = arch["page_turn_payoff"]
+
+    # Store metrics on the spec
+    spec["panel_architecture_metrics"] = architecture.get("metrics", {})
+
+    return actions
+
 
 # =====================================================================
 # REWRITE ENGINE (NEW) — Actually rewrites content, not just placeholders
@@ -1014,7 +2123,33 @@ class ScriptRewriter:
         self._ensure_protagonist_need(failed)
         self._tighten_dialogue()
 
+        # Panel architecture: apply objective, tempo, layout, shot, weight,
+        # transition data to every page and panel in the spec.
+        self._apply_panel_architecture(failed)
+
         return self.actions
+
+    # -----------------------------------------------------------------
+    # REWRITE: Panel Architecture (objective, tempo, layout, shot, weight)
+    # -----------------------------------------------------------------
+
+    def _apply_panel_architecture(self, failed: set) -> None:
+        """Apply the panel architecture engine to enrich pages with
+        structural paneling data: objectives, tempo, layout, shots,
+        weights, and transitions.
+
+        This runs regardless of which rules failed — it's additive
+        enrichment, not a fix for a specific problem.
+        """
+        arch_actions = apply_panel_architecture(self.spec, rng=self.rng)
+        for act in arch_actions:
+            self.actions.append(RewriteAction(
+                location=act["location"],
+                field=act["field"],
+                old_value=act["old_value"],
+                new_value=act["new_value"],
+                reason=act["reason"],
+            ))
 
     # -----------------------------------------------------------------
     # REWRITE: Missing art directions
@@ -1541,15 +2676,25 @@ def build_unified_comics_engine() -> RulesEngine:
     eng.register(Rule("DCOSTA.STAKES_SPECIFICITY", Priority.P2_COMICS_SPECIFICITY, "Stakes concrete.", rule_dcosta_stakes_specificity))
     eng.register(Rule("CONFLICT.FOUR_LEVELS", Priority.P2_COMICS_SPECIFICITY, "Conflict coverage.", rule_conflict_four_levels))
     eng.register(Rule("PRIEST.INTERIOR_SPLASH", Priority.P2_COMICS_SPECIFICITY, "Interior splash check.", rule_priest_interior_splash))
+    eng.register(Rule("PANEL.SHOT_VARIETY", Priority.P2_COMICS_SPECIFICITY, "Shot variety across pages.", rule_panel_shot_variety))
+    eng.register(Rule("PANEL.SPLASH_BUDGET", Priority.P2_COMICS_SPECIFICITY, "Splash page discipline.", rule_splash_budget))
 
-    # P3 - Pacing
+    # P3 - Pacing (Panel Architecture)
     eng.register(Rule("MOORE.PANEL_TIME_STOPPERS", Priority.P3_DRAMA_AND_PACING, "Flag overlong panels.", rule_moore_panel_time_stoppers))
+    eng.register(Rule("PANEL.TEMPO_COHERENCE", Priority.P3_DRAMA_AND_PACING, "Panel counts match page objectives.", rule_panel_tempo_coherence))
+    eng.register(Rule("PANEL.WEIGHT_DISTRIBUTION", Priority.P3_DRAMA_AND_PACING, "Panel sizing serves narrative.", rule_panel_weight_distribution))
+    eng.register(Rule("PANEL.PAGE_OBJECTIVE", Priority.P3_DRAMA_AND_PACING, "Every page has emotional objective.", rule_page_emotional_objective))
+    eng.register(Rule("PANEL.PROGRESSIVE_TEMPO", Priority.P3_DRAMA_AND_PACING, "Tempo shifts across issue.", rule_panel_progressive_tempo))
 
     # P4 - Transitions
     eng.register(Rule("SLOANE.ABSORPTION_HOOKS", Priority.P4_TRANSITIONS, "Scene hooks.", rule_sloane_absorption_hooks))
     eng.register(Rule("SCENE.OUTCOME_DIRECTION", Priority.P4_TRANSITIONS, "Scene outcomes.", rule_scene_outcome_direction))
     eng.register(Rule("MOORE.TRANSITION_GLUE", Priority.P4_TRANSITIONS, "Transition glue.", rule_moore_transition_glue))
     eng.register(Rule("GRID.PAGE_TURN_REVEALS", Priority.P4_TRANSITIONS, "Page-turn reveals.", rule_comics_grid_page_turns))
+    eng.register(Rule("PANEL.PAGE_TURN_POSITION", Priority.P4_TRANSITIONS, "Reveals on left-hand pages.", rule_page_turn_positioning))
+
+    # P5 - Structure shape
+    eng.register(Rule("PANEL.TRANSITION_AWARENESS", Priority.P5_STRUCTURE_SHAPE, "Panel transition annotations.", rule_panel_transition_awareness))
 
     # P6 + P7 - Advisory
     eng.register(Rule("MEDIUM.CONSTRAINTS", Priority.P6_MEDIUM_CONSTRAINTS, "Medium reminders.", rule_medium_constraints))
@@ -1947,12 +3092,16 @@ def run_rewrite(spec: Dict[str, Any], engine: RulesEngine, passes: int = 2, full
     final_results = engine.evaluate(spec, stop_on_first_failing_priority=(not full_report))
     final_summary = _summarize(final_results)
 
+    # Generate panel architecture matrix for the final spec
+    panel_architecture = architect_issue(spec)
+
     return {
         "rewrite_passes_completed": pass_num,
         "total_rewrites": len(all_actions),
         "actions": all_actions,
         "final_summary": final_summary,
         "final_results": [asdict(r) for r in final_results],
+        "panel_architecture": panel_architecture,
     }
 
 

@@ -38,6 +38,7 @@ from unified_comics_rules_engine_studio import (
     run_rewrite,
     generate_specs,
     gate_results,
+    architect_issue,
     _summarize,
     _priority_from_str,
     FIX_REGISTRY,
@@ -101,7 +102,7 @@ class handler(BaseHTTPRequestHandler):
         summary = _summarize(results)
         ok, gate_message = gate_results(results, min_pri)
 
-        return {
+        response = {
             "mode": "critic",
             "summary": summary,
             "results": [asdict(r) for r in results],
@@ -109,6 +110,12 @@ class handler(BaseHTTPRequestHandler):
             "suggestions": spec.get("suggestions", {}) if apply_fixes == "suggest" else {},
             "spec": spec if apply_fixes != "none" else None,
         }
+
+        # Include panel architecture if requested
+        if req.get("include_architecture", False):
+            response["panel_architecture"] = architect_issue(spec)
+
+        return response
 
     def _handle_rewrite(self, req, engine, min_pri, full_report):
         spec = req.get("spec")
@@ -131,6 +138,7 @@ class handler(BaseHTTPRequestHandler):
             "results": [asdict(r) for r in final_results],
             "gate": {"min_priority": min_pri.name, "ok": ok, "message": gate_message},
             "spec": spec,
+            "panel_architecture": rewrite_report.get("panel_architecture", {}),
         }
 
     def _handle_studio(self, req, engine, min_pri):
