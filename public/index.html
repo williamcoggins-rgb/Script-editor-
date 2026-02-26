@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Script Editor — Upload, Read, Edit</title>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs" type="module"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -28,7 +27,6 @@
     --error: #dc2626;
     --error-light: #fee2e2;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-    --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
     --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
     --shadow-lg: 0 10px 15px rgba(0,0,0,0.1), 0 4px 6px rgba(0,0,0,0.05);
     --radius: 8px;
@@ -52,8 +50,8 @@
   .header {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 0 32px;
-    height: 56px;
+    padding: 0 24px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -63,112 +61,66 @@
     box-shadow: var(--shadow-sm);
   }
 
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
 
   .logo {
-    width: 32px;
-    height: 32px;
+    width: 30px; height: 30px;
     background: var(--accent);
     border-radius: var(--radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 15px;
   }
 
-  .header h1 {
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: -0.3px;
-  }
+  .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .header-right { display: flex; align-items: center; gap: 6px; }
 
   /* ── Buttons ── */
   .btn {
     font-family: var(--font-body);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 8px 16px;
+    font-size: 12px; font-weight: 500;
+    padding: 6px 14px;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text);
     cursor: pointer;
     transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
+    display: inline-flex; align-items: center; gap: 5px;
     white-space: nowrap;
   }
 
   .btn:hover { background: var(--surface-hover); border-color: var(--border-strong); }
   .btn:active { transform: scale(0.98); }
-
-  .btn-primary {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
-  }
-
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
   .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-
-  .btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
 
   /* ── Layout ── */
-  .app {
-    display: flex;
-    flex-direction: column;
-    height: calc(100vh - 56px);
-  }
+  .app { display: flex; flex-direction: column; height: calc(100vh - 52px); }
 
   /* ── Upload View ── */
   .upload-view {
     flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     padding: 32px;
   }
 
-  .upload-container {
-    max-width: 640px;
-    width: 100%;
-    text-align: center;
-  }
+  .upload-container { max-width: 600px; width: 100%; text-align: center; }
 
   .upload-container h2 {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 8px;
+    font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 8px;
   }
 
   .upload-container > p {
-    color: var(--text-secondary);
-    font-size: 15px;
-    margin-bottom: 32px;
-    line-height: 1.5;
+    color: var(--text-secondary); font-size: 14px; margin-bottom: 28px; line-height: 1.5;
   }
 
   .dropzone {
     border: 2px dashed var(--border-strong);
     border-radius: var(--radius-lg);
-    padding: 64px 40px;
+    padding: 56px 40px;
     cursor: pointer;
     transition: all 0.2s ease;
     background: var(--surface);
@@ -176,243 +128,301 @@
   }
 
   .dropzone:hover, .dropzone.dragover {
-    border-color: var(--accent);
-    background: var(--accent-light);
+    border-color: var(--accent); background: var(--accent-light);
   }
 
   .dropzone-icon {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 16px;
+    width: 52px; height: 52px;
+    margin: 0 auto 14px;
     background: var(--accent-light);
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
   }
 
-  .dropzone-icon svg {
-    width: 28px;
-    height: 28px;
-    color: var(--accent);
-  }
+  .dropzone-icon svg { width: 26px; height: 26px; color: var(--accent); }
 
-  .dropzone h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .dropzone p {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 0;
-  }
+  .dropzone h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .dropzone p { font-size: 13px; color: var(--text-muted); margin-bottom: 0; }
 
   .dropzone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
   }
 
-  .upload-hint {
-    margin-top: 20px;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
+  .upload-hint { margin-top: 16px; font-size: 11px; color: var(--text-muted); }
 
   .paste-option {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
+    margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);
   }
 
-  .paste-option button {
-    font-size: 14px;
-    padding: 10px 24px;
-  }
+  .paste-option button { font-size: 13px; padding: 8px 20px; }
 
   /* ── Editor View ── */
-  .editor-view {
-    flex: 1;
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
+  .editor-view { flex: 1; display: none; flex-direction: column; overflow: hidden; }
   .editor-view.active { display: flex; }
 
   .editor-toolbar {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 8px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    flex-shrink: 0;
+    padding: 6px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; flex-shrink: 0;
   }
 
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+  .toolbar-left { display: flex; align-items: center; gap: 8px; }
+  .toolbar-right { display: flex; align-items: center; gap: 6px; }
 
-  .toolbar-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+  .editor-main { flex: 1; display: flex; overflow: hidden; }
 
-  .file-name {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .view-toggle {
-    display: flex;
-    background: var(--bg);
-    border-radius: var(--radius);
-    padding: 2px;
-    border: 1px solid var(--border);
-  }
-
-  .view-toggle button {
-    font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 5px 12px;
-    border: none;
-    background: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.15s;
-  }
-
-  .view-toggle button.active {
+  /* ── Files Panel (Left) ── */
+  .files-panel {
+    width: 220px;
+    min-width: 220px;
     background: var(--surface);
-    color: var(--text);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .editor-main {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-  }
-
-  /* ── Image/Preview Panel ── */
-  .image-panel {
-    width: 50%;
     border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
     overflow: hidden;
-    background: #f0eeec;
   }
 
-  .image-panel.hidden { display: none; }
+  .files-panel.hidden { display: none; }
 
-  .page-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    padding: 8px 16px;
-    background: var(--surface);
+  .panel-head {
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .panel-head h3 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted);
+  }
+
+  .file-list { flex: 1; overflow-y: auto; padding: 6px; }
+
+  .file-item {
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.1s;
+    margin-bottom: 2px;
+  }
+
+  .file-item:hover { background: var(--surface-hover); }
+  .file-item.active { background: var(--accent-light); }
+
+  .file-item-icon {
+    width: 28px; height: 28px; min-width: 28px;
+    border-radius: 6px; background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .file-item.active .file-item-icon {
+    background: var(--accent); color: white;
+  }
+
+  .file-item-info { flex: 1; min-width: 0; }
+
+  .file-item-name {
+    font-size: 12px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .file-item-status {
+    font-size: 10px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    display: inline-block;
+  }
+
+  .status-dot.pending { background: var(--text-muted); }
+  .status-dot.scanning { background: var(--warning); }
+  .status-dot.done { background: var(--success); }
+
+  .file-item-remove {
+    opacity: 0; border: none; background: none;
+    color: var(--text-muted); cursor: pointer; padding: 2px;
+    border-radius: 4px; font-size: 14px; line-height: 1;
+  }
+
+  .file-item:hover .file-item-remove { opacity: 1; }
+
+  .add-more-btn {
+    margin: 6px; position: relative;
+  }
+
+  .add-more-btn input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+
+  /* ── Center: Preview + Editor ── */
+  .center-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+  .preview-bar {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; padding: 6px 12px;
+    background: var(--surface); border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
 
-  .page-nav.hidden { display: none; }
+  .preview-bar.hidden { display: none; }
 
-  .page-nav button {
-    font-family: var(--font-body);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 4px 12px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    color: var(--text);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
+  .preview-bar button {
+    font-family: var(--font-body); font-size: 11px; font-weight: 500;
+    padding: 3px 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+    border-radius: 5px; cursor: pointer;
   }
 
-  .page-nav button:hover { background: var(--surface-hover); }
-  .page-nav button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .preview-bar button:hover { background: var(--surface-hover); }
+  .preview-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  .page-nav span {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    font-variant-numeric: tabular-nums;
-    min-width: 80px;
-    text-align: center;
+  .preview-bar span {
+    font-size: 11px; font-weight: 500; color: var(--text-secondary);
+    font-variant-numeric: tabular-nums; min-width: 70px; text-align: center;
   }
 
-  .image-wrapper {
-    flex: 1;
-    overflow: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px;
-    gap: 16px;
+  .content-split { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .image-preview {
+    background: #f0eeec;
+    overflow: auto; display: flex; align-items: flex-start; justify-content: center;
+    padding: 16px;
   }
 
-  .image-wrapper img,
-  .image-wrapper canvas {
-    max-width: 100%;
-    height: auto;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-md);
-  }
+  .image-preview.hidden { display: none; }
+  .image-preview.half { height: 40%; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+  .image-preview.full { flex: 1; }
 
-  /* ── Text Panel ── */
-  .text-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    min-width: 0;
+  .image-preview img {
+    max-width: 100%; height: auto;
+    border-radius: var(--radius); box-shadow: var(--shadow-md);
   }
 
   .script-editor {
-    flex: 1;
-    width: 100%;
-    border: none;
-    outline: none;
-    resize: none;
-    padding: 32px 40px;
+    flex: 1; width: 100%;
+    border: none; outline: none; resize: none;
+    padding: 24px 32px;
     font-family: var(--font-script);
-    font-size: 15px;
-    line-height: 1.8;
-    color: var(--text);
-    background: var(--surface);
+    font-size: 14px; line-height: 1.8;
+    color: var(--text); background: var(--surface);
     overflow-y: auto;
   }
 
   .script-editor::placeholder { color: var(--text-muted); }
+  .script-editor.hidden { display: none; }
+
+  /* ── Insights Panel (Right) ── */
+  .insights-panel {
+    width: 280px; min-width: 280px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .insights-panel.hidden { display: none; }
+
+  .insights-body { flex: 1; overflow-y: auto; padding: 14px; }
+
+  /* ── Insight Cards ── */
+  .insight-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  .insight-card h4 {
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--text-muted); margin-bottom: 8px;
+  }
+
+  .confidence-meter {
+    height: 8px; background: var(--border);
+    border-radius: 4px; overflow: hidden; margin-bottom: 6px;
+  }
+
+  .confidence-fill {
+    height: 100%; border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .confidence-fill.high { background: var(--success); }
+  .confidence-fill.medium { background: var(--warning); }
+  .confidence-fill.low { background: var(--error); }
+
+  .confidence-label {
+    font-size: 20px; font-weight: 700; letter-spacing: -0.5px;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+
+  .confidence-label small {
+    font-size: 12px; font-weight: 500; color: var(--text-muted);
+  }
+
+  .stat-row {
+    display: flex; justify-content: space-between;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+
+  .stat-row .label { color: var(--text-secondary); }
+  .stat-row .value { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  .flagged-list { max-height: 200px; overflow-y: auto; }
+
+  .flagged-word {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; margin: 2px;
+    background: var(--warning-light);
+    border: 1px solid #fde68a;
+    border-radius: 4px;
+    font-size: 11px; font-family: var(--font-script);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .flagged-word:hover { background: #fde68a; }
+
+  .flagged-word.low-conf {
+    background: var(--error-light);
+    border-color: #fca5a5;
+  }
+
+  .flagged-word.low-conf:hover { background: #fca5a5; }
+
+  .flagged-word .conf-badge {
+    font-family: var(--font-body);
+    font-size: 9px; font-weight: 600;
+    padding: 1px 4px;
+    border-radius: 3px;
+    background: rgba(0,0,0,0.08);
+  }
+
+  .no-issues {
+    text-align: center; padding: 20px;
+    color: var(--text-muted); font-size: 12px;
+  }
+
+  .no-issues svg { margin-bottom: 8px; color: var(--success); }
+
+  .insight-empty {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-muted); font-size: 13px;
+  }
 
   /* ── OCR Progress ── */
   .ocr-overlay {
-    position: fixed;
-    inset: 0;
+    position: fixed; inset: 0;
     background: rgba(0,0,0,0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; backdrop-filter: blur(4px);
   }
 
   .ocr-overlay.active { display: flex; }
@@ -420,112 +430,76 @@
   .ocr-modal {
     background: var(--surface);
     border-radius: var(--radius-lg);
-    padding: 40px;
-    max-width: 420px;
-    width: 90%;
-    text-align: center;
-    box-shadow: var(--shadow-lg);
+    padding: 36px; max-width: 400px; width: 90%;
+    text-align: center; box-shadow: var(--shadow-lg);
   }
 
-  .ocr-modal h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 8px;
-  }
-
-  .ocr-modal p {
-    font-size: 14px;
-    color: var(--text-secondary);
-    margin-bottom: 24px;
-  }
+  .ocr-modal h3 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .ocr-modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
 
   .progress-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--bg);
-    border-radius: 3px;
-    overflow: hidden;
-    margin-bottom: 12px;
+    width: 100%; height: 6px; background: var(--bg);
+    border-radius: 3px; overflow: hidden; margin-bottom: 10px;
   }
 
   .progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-    width: 0%;
+    height: 100%; background: var(--accent);
+    border-radius: 3px; transition: width 0.3s ease; width: 0%;
   }
 
   .progress-text {
-    font-size: 12px;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
+    font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums;
   }
 
   /* ── Status Bar ── */
   .status-bar {
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding: 6px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-    flex-shrink: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 4px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: var(--text-muted); flex-shrink: 0;
   }
-
-  .word-count { font-variant-numeric: tabular-nums; }
 
   /* ── Toast ── */
   .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--text);
-    color: white;
-    padding: 12px 20px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-weight: 500;
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--text); color: white;
+    padding: 10px 18px; border-radius: var(--radius);
+    font-size: 12px; font-weight: 500;
     box-shadow: var(--shadow-lg);
-    transform: translateY(80px);
-    opacity: 0;
-    transition: all 0.3s ease;
-    z-index: 300;
+    transform: translateY(80px); opacity: 0;
+    transition: all 0.3s ease; z-index: 300;
   }
 
   .toast.show { transform: translateY(0); opacity: 1; }
 
   /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .files-panel { width: 180px; min-width: 180px; }
+    .insights-panel { width: 240px; min-width: 240px; }
+  }
+
   @media (max-width: 768px) {
-    .header { padding: 0 16px; }
-    .upload-container { padding: 16px; }
-    .dropzone { padding: 40px 24px; }
+    .header { padding: 0 12px; }
+    .files-panel, .insights-panel { display: none !important; }
     .editor-main { flex-direction: column; }
-    .image-panel { width: 100%; height: 40%; border-right: none; border-bottom: 1px solid var(--border); }
-    .script-editor { padding: 20px; }
-    .editor-toolbar { padding: 8px 16px; flex-wrap: wrap; }
+    .script-editor { padding: 16px; }
+    .editor-toolbar { padding: 6px 12px; flex-wrap: wrap; }
+    .image-preview.half { height: 35%; }
   }
 </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
 <div class="header">
   <div class="header-left">
     <div class="logo">S</div>
     <h1>Script Editor</h1>
   </div>
   <div class="header-right">
-    <button class="btn" id="btn-new" style="display:none" onclick="resetApp()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      New
-    </button>
-    <button class="btn" id="btn-export" style="display:none" onclick="exportText()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export
-    </button>
+    <button class="btn" id="btn-insights" style="display:none" onclick="toggleInsights()">Insights</button>
+    <button class="btn" id="btn-new" style="display:none" onclick="resetApp()">New</button>
+    <button class="btn" id="btn-export" style="display:none" onclick="exportText()">Export</button>
+    <button class="btn btn-primary" id="btn-copy" style="display:none" onclick="copyText()">Copy</button>
   </div>
 </div>
 
@@ -533,9 +507,8 @@
   <!-- ── Upload View ── -->
   <div class="upload-view" id="upload-view">
     <div class="upload-container">
-      <h2>Upload your script</h2>
-      <p>Drop a PDF, image, or document and we'll read it for you. Then edit, refine, and export.</p>
-
+      <h2>Upload your scripts</h2>
+      <p>Drop PDFs, images, or multiple files at once. We'll read them all and let you edit the text.</p>
       <div class="dropzone" id="dropzone">
         <div class="dropzone-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -543,20 +516,15 @@
             <polyline points="14 2 14 8 20 8"/>
             <line x1="16" y1="13" x2="8" y2="13"/>
             <line x1="16" y1="17" x2="8" y2="17"/>
-            <polyline points="10 9 9 9 8 9"/>
           </svg>
         </div>
-        <h3>Drop your file here or click to browse</h3>
-        <p>PDF, JPG, PNG, TIFF, BMP, WebP</p>
-        <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
+        <h3>Drop files here or click to browse</h3>
+        <p>Select multiple files — PDF, JPG, PNG, TIFF, BMP, WebP</p>
+        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
       </div>
-
-      <p class="upload-hint">Files are processed entirely in your browser. Nothing is uploaded to any server.</p>
-
+      <p class="upload-hint">All processing happens in your browser. Nothing is uploaded to any server.</p>
       <div class="paste-option">
-        <button class="btn btn-primary" onclick="startBlankEditor()">
-          Or start with a blank editor
-        </button>
+        <button class="btn btn-primary" onclick="startBlankEditor()">Or start with a blank editor</button>
       </div>
     </div>
   </div>
@@ -565,65 +533,76 @@
   <div class="editor-view" id="editor-view">
     <div class="editor-toolbar">
       <div class="toolbar-left">
-        <span class="file-name" id="file-name">Untitled Script</span>
-      </div>
-      <div class="toolbar-right">
-        <div class="view-toggle" id="view-toggle">
+        <button class="btn btn-sm" id="btn-toggle-files" onclick="toggleFiles()">Files</button>
+        <div class="view-toggle" id="view-toggle" style="display:none">
           <button class="active" data-view="split" onclick="setView('split')">Split</button>
-          <button data-view="image" onclick="setView('image')">Image</button>
+          <button data-view="preview" onclick="setView('preview')">Preview</button>
           <button data-view="text" onclick="setView('text')">Text</button>
         </div>
-        <button class="btn" onclick="rerunOCR()" id="btn-reocr" title="Re-scan current page">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-          Re-scan
-        </button>
-        <button class="btn btn-primary" onclick="copyText()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy
-        </button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn btn-sm" onclick="rerunOCR()" id="btn-reocr" style="display:none">Re-scan</button>
+        <button class="btn btn-sm" onclick="scanAllFiles()" id="btn-scan-all" style="display:none">Scan All</button>
       </div>
     </div>
 
     <div class="editor-main">
-      <!-- Preview Side -->
-      <div class="image-panel" id="image-panel">
-        <div class="page-nav hidden" id="page-nav">
-          <button onclick="goToPage(currentPage - 1)" id="btn-prev-page">Prev</button>
-          <span id="page-indicator">Page 1 of 1</span>
-          <button onclick="goToPage(currentPage + 1)" id="btn-next-page">Next</button>
-          <button class="btn" style="margin-left:8px;padding:4px 10px;font-size:11px;" onclick="ocrAllPages()" id="btn-ocr-all">Scan All Pages</button>
+      <!-- Left: Files Panel -->
+      <div class="files-panel" id="files-panel">
+        <div class="panel-head">
+          <h3>Files</h3>
+          <span id="file-count" style="font-size:11px;color:var(--text-muted)">0</span>
         </div>
-        <div class="image-wrapper" id="image-wrapper">
-          <img id="preview-img" src="" alt="Uploaded script" style="display:none">
-          <canvas id="preview-canvas" style="display:none"></canvas>
+        <div class="file-list" id="file-list"></div>
+        <div class="add-more-btn">
+          <button class="btn btn-sm" style="width:100%;justify-content:center;">+ Add more files</button>
+          <input type="file" id="add-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.tiff,.tif,.bmp,.webp,image/*,application/pdf">
         </div>
       </div>
 
-      <!-- Text Side -->
-      <div class="text-panel" id="text-panel">
-        <textarea
-          class="script-editor"
-          id="script-editor"
-          placeholder="Your script text will appear here after scanning...
+      <!-- Center: Preview + Editor -->
+      <div class="center-panel">
+        <div class="preview-bar hidden" id="preview-bar">
+          <button onclick="prevPage()" id="btn-prev">Prev</button>
+          <span id="page-indicator">Page 1 of 1</span>
+          <button onclick="nextPage()" id="btn-next">Next</button>
+        </div>
+        <div class="content-split" id="content-split">
+          <div class="image-preview half" id="image-preview">
+            <img id="preview-img" src="" alt="">
+          </div>
+          <textarea
+            class="script-editor"
+            id="script-editor"
+            placeholder="Upload files to begin scanning, or type your script here..."
+            spellcheck="true"
+          ></textarea>
+        </div>
+      </div>
 
-You can also type or paste directly."
-          spellcheck="true"
-        ></textarea>
+      <!-- Right: Insights Panel -->
+      <div class="insights-panel" id="insights-panel">
+        <div class="panel-head">
+          <h3>Scan Insights</h3>
+        </div>
+        <div class="insights-body" id="insights-body">
+          <div class="insight-empty">Upload and scan a file to see OCR insights here.</div>
+        </div>
       </div>
     </div>
 
     <div class="status-bar">
-      <span class="word-count" id="word-count">0 words</span>
+      <span id="word-count">0 words</span>
       <span id="status-text">Ready</span>
     </div>
   </div>
 </div>
 
-<!-- ── OCR Progress Overlay ── -->
+<!-- ── OCR Progress ── -->
 <div class="ocr-overlay" id="ocr-overlay">
   <div class="ocr-modal">
     <h3 id="ocr-title">Reading your script</h3>
-    <p id="ocr-status-text">Initializing OCR engine...</p>
+    <p id="ocr-status-text">Initializing...</p>
     <div class="progress-bar">
       <div class="progress-fill" id="progress-fill"></div>
     </div>
@@ -631,458 +610,704 @@ You can also type or paste directly."
   </div>
 </div>
 
-<!-- ── Toast ── -->
 <div class="toast" id="toast"></div>
 
 <script type="module">
-// ── Load PDF.js ──
+// ── PDF.js ──
 const pdfjsLib = await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs');
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
 
 // ── State ──
-let currentFile = null;
-let currentView = 'split';
-let pdfDoc = null;        // loaded PDF document
-let totalPages = 0;
-let pageTexts = [];       // OCR'd text per page
-let renderedPages = [];   // rendered page canvases as data URLs
-window.currentPage = 1;
+// Each file entry: { id, name, type, file, status:'pending'|'scanning'|'done',
+//   pages: [{dataUrl, text, ocrData}], currentPage, pdfDoc }
+let files = [];
+let activeFileId = null;
+let currentViewMode = 'split';
 
-// ── Elements ──
-const $ = (id) => document.getElementById(id);
-const $uploadView = $('upload-view');
-const $editorView = $('editor-view');
-const $dropzone = $('dropzone');
-const $fileInput = $('file-input');
-const $editor = $('script-editor');
-const $previewImg = $('preview-img');
-const $previewCanvas = $('preview-canvas');
-const $imagePanel = $('image-panel');
-const $imageWrapper = $('image-wrapper');
-const $textPanel = $('text-panel');
-const $ocrOverlay = $('ocr-overlay');
-const $progressFill = $('progress-fill');
-const $progressText = $('progress-text');
-const $ocrStatusText = $('ocr-status-text');
-const $ocrTitle = $('ocr-title');
-const $wordCount = $('word-count');
-const $statusText = $('status-text');
-const $fileName = $('file-name');
-const $btnNew = $('btn-new');
-const $btnExport = $('btn-export');
-const $btnReocr = $('btn-reocr');
-const $viewToggle = $('view-toggle');
-const $pageNav = $('page-nav');
-const $pageIndicator = $('page-indicator');
-const $btnPrev = $('btn-prev-page');
-const $btnNext = $('btn-next-page');
-const $btnOcrAll = $('btn-ocr-all');
+// ── Helpers ──
+const el = (id) => document.getElementById(id);
+let toastTimer;
+function showToast(msg) {
+  const t = el('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function genId() { return Math.random().toString(36).slice(2, 10); }
+
+function getFileExt(name) {
+  const dot = name.lastIndexOf('.');
+  return dot >= 0 ? name.slice(dot + 1).toLowerCase() : '';
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
 
 // ── File Handling ──
-$fileInput.addEventListener('change', (e) => {
-  if (e.target.files.length) handleFile(e.target.files[0]);
+el('file-input').addEventListener('change', e => {
+  if (e.target.files.length) addFiles(e.target.files);
 });
 
-$dropzone.addEventListener('dragover', (e) => {
+el('add-file-input').addEventListener('change', e => {
+  if (e.target.files.length) addFiles(e.target.files);
+  e.target.value = '';
+});
+
+el('dropzone').addEventListener('dragover', e => {
   e.preventDefault();
-  $dropzone.classList.add('dragover');
+  el('dropzone').classList.add('dragover');
 });
-
-$dropzone.addEventListener('dragleave', () => {
-  $dropzone.classList.remove('dragover');
-});
-
-$dropzone.addEventListener('drop', (e) => {
+el('dropzone').addEventListener('dragleave', () => el('dropzone').classList.remove('dragover'));
+el('dropzone').addEventListener('drop', e => {
   e.preventDefault();
-  $dropzone.classList.remove('dragover');
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  el('dropzone').classList.remove('dragover');
+  if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
 });
 
-document.addEventListener('paste', (e) => {
+// Also allow drag-drop onto editor view
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  if (e.dataTransfer.files.length && el('editor-view').classList.contains('active')) {
+    addFiles(e.dataTransfer.files);
+  }
+});
+
+document.addEventListener('paste', e => {
   const items = e.clipboardData?.items;
   if (!items) return;
   for (const item of items) {
     if (item.type.startsWith('image/')) {
       e.preventDefault();
-      handleFile(item.getAsFile());
+      addFiles([item.getAsFile()]);
       return;
     }
   }
 });
 
-async function handleFile(file) {
-  const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  const isImage = file.type.startsWith('image/');
+async function addFiles(fileList) {
+  const arr = Array.from(fileList);
+  const validExts = ['pdf','jpg','jpeg','png','tiff','tif','bmp','webp'];
 
-  if (!isPDF && !isImage) {
-    showToast('Unsupported file type. Use PDF, JPG, PNG, TIFF, BMP, or WebP.');
-    return;
+  for (const file of arr) {
+    const ext = getFileExt(file.name);
+    const isPDF = file.type === 'application/pdf' || ext === 'pdf';
+    const isImage = file.type.startsWith('image/') || validExts.includes(ext);
+
+    if (!isPDF && !isImage) {
+      showToast(`Skipped "${file.name}" — unsupported type`);
+      continue;
+    }
+
+    const entry = {
+      id: genId(),
+      name: file.name,
+      type: isPDF ? 'pdf' : 'image',
+      file,
+      status: 'pending',
+      pages: [],
+      currentPage: 0,
+      pdfDoc: null,
+      overallConfidence: null,
+    };
+
+    files.push(entry);
   }
 
-  currentFile = file;
-  $fileName.textContent = file.name;
+  // Switch to editor and show files
+  el('upload-view').style.display = 'none';
+  el('editor-view').classList.add('active');
+  el('btn-new').style.display = '';
+  el('btn-export').style.display = '';
+  el('btn-copy').style.display = '';
+  el('btn-insights').style.display = '';
+  el('btn-scan-all').style.display = '';
+  el('view-toggle').style.display = '';
 
-  if (isPDF) {
-    await handlePDF(file);
+  renderFileList();
+
+  // Activate the first new file if none is active
+  if (!activeFileId && files.length > 0) {
+    await activateFile(files[0].id);
+  }
+
+  // Auto-scan the first file
+  const firstNew = files.find(f => f.status === 'pending');
+  if (firstNew && firstNew.id === activeFileId) {
+    await loadAndScanFile(firstNew.id);
+  }
+}
+
+// ── File List UI ──
+function renderFileList() {
+  const list = el('file-list');
+  el('file-count').textContent = files.length;
+
+  list.innerHTML = files.map(f => {
+    const ext = getFileExt(f.name);
+    const isActive = f.id === activeFileId;
+    const statusClass = f.status === 'done' ? 'done' : f.status === 'scanning' ? 'scanning' : 'pending';
+    const statusLabel = f.status === 'done' ? 'Scanned' : f.status === 'scanning' ? 'Scanning...' : 'Pending';
+
+    return `<div class="file-item ${isActive ? 'active' : ''}" onclick="activateFile('${f.id}')">
+      <div class="file-item-icon">${ext.slice(0, 3) || '?'}</div>
+      <div class="file-item-info">
+        <div class="file-item-name" title="${f.name}">${f.name}</div>
+        <div class="file-item-status">
+          <span class="status-dot ${statusClass}"></span>
+          ${statusLabel}
+          ${f.overallConfidence !== null ? ` · ${Math.round(f.overallConfidence)}%` : ''}
+        </div>
+      </div>
+      <button class="file-item-remove" onclick="event.stopPropagation();removeFile('${f.id}')" title="Remove">&times;</button>
+    </div>`;
+  }).join('');
+}
+
+window.activateFile = async function(id) {
+  activeFileId = id;
+  const f = files.find(x => x.id === id);
+  if (!f) return;
+
+  renderFileList();
+
+  // Show preview
+  if (f.pages.length > 0) {
+    showPage(f, f.currentPage);
+    el('btn-reocr').style.display = '';
   } else {
-    await handleImage(file);
-  }
-}
-
-// ── Image Handling ──
-async function handleImage(file) {
-  pdfDoc = null;
-  totalPages = 1;
-  pageTexts = [''];
-  renderedPages = [];
-  window.currentPage = 1;
-
-  const dataUrl = await readFileAsDataURL(file);
-  $previewImg.src = dataUrl;
-  $previewImg.style.display = 'block';
-  $previewCanvas.style.display = 'none';
-  $pageNav.classList.add('hidden');
-
-  switchToEditor(true);
-  await runOCR(dataUrl, 0);
-}
-
-// ── PDF Handling ──
-async function handlePDF(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  pdfDoc = await loadingTask.promise;
-  totalPages = pdfDoc.numPages;
-  pageTexts = new Array(totalPages).fill('');
-  renderedPages = new Array(totalPages).fill(null);
-  window.currentPage = 1;
-
-  $previewImg.style.display = 'none';
-  $previewCanvas.style.display = 'none';
-  $pageNav.classList.remove('hidden');
-
-  switchToEditor(true);
-  updatePageNav();
-
-  // Render first page and OCR it
-  await renderPDFPage(1);
-  await runOCR(renderedPages[0], 0);
-}
-
-async function renderPDFPage(pageNum) {
-  if (renderedPages[pageNum - 1]) return renderedPages[pageNum - 1];
-
-  const page = await pdfDoc.getPage(pageNum);
-  const scale = 2.0; // High DPI for better OCR
-  const viewport = page.getViewport({ scale });
-
-  const canvas = document.createElement('canvas');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  const ctx = canvas.getContext('2d');
-
-  await page.render({ canvasContext: ctx, viewport }).promise;
-
-  const dataUrl = canvas.toDataURL('image/png');
-  renderedPages[pageNum - 1] = dataUrl;
-  return dataUrl;
-}
-
-function showPagePreview(pageNum) {
-  const dataUrl = renderedPages[pageNum - 1];
-  if (!dataUrl) return;
-
-  // Use an img element for the preview (cleaner than canvas)
-  $previewImg.src = dataUrl;
-  $previewImg.style.display = 'block';
-  $previewCanvas.style.display = 'none';
-}
-
-function updatePageNav() {
-  $pageIndicator.textContent = `Page ${window.currentPage} of ${totalPages}`;
-  $btnPrev.disabled = window.currentPage <= 1;
-  $btnNext.disabled = window.currentPage >= totalPages;
-}
-
-window.goToPage = async function(pageNum) {
-  if (pageNum < 1 || pageNum > totalPages) return;
-  window.currentPage = pageNum;
-  updatePageNav();
-
-  // Render the page if not already
-  if (!renderedPages[pageNum - 1]) {
-    await renderPDFPage(pageNum);
-  }
-  showPagePreview(pageNum);
-
-  // If this page hasn't been OCR'd yet, run OCR
-  if (!pageTexts[pageNum - 1]) {
-    await runOCR(renderedPages[pageNum - 1], pageNum - 1);
+    el('preview-img').src = '';
+    el('image-preview').classList.add('hidden');
+    el('btn-reocr').style.display = 'none';
   }
 
-  // Show the combined text
-  assembleText();
-}
+  // Show text in editor
+  assembleText(f);
 
-window.ocrAllPages = async function() {
-  $ocrOverlay.classList.add('active');
-  $ocrTitle.textContent = 'Scanning all pages';
+  // Show page nav for multi-page
+  updatePageNav(f);
 
-  for (let i = 0; i < totalPages; i++) {
-    $ocrStatusText.textContent = `Processing page ${i + 1} of ${totalPages}...`;
-    const overallPct = Math.round((i / totalPages) * 100);
-    $progressFill.style.width = overallPct + '%';
-    $progressText.textContent = overallPct + '%';
+  // Show insights
+  renderInsights(f);
 
-    // Render if needed
-    if (!renderedPages[i]) {
-      await renderPDFPage(i + 1);
-    }
-
-    // OCR if needed
-    if (!pageTexts[i]) {
-      try {
-        const result = await Tesseract.recognize(renderedPages[i], 'eng', {
-          logger: (m) => {
-            if (m.status === 'recognizing text') {
-              const pagePct = Math.round(m.progress * 100);
-              const overall = Math.round(((i + m.progress) / totalPages) * 100);
-              $progressFill.style.width = overall + '%';
-              $progressText.textContent = overall + '%';
-            }
-          }
-        });
-        pageTexts[i] = cleanOCRText(result.data.text || '');
-      } catch (err) {
-        pageTexts[i] = `[OCR failed for page ${i + 1}]`;
-      }
-    }
-  }
-
-  $progressFill.style.width = '100%';
-  $progressText.textContent = '100%';
-  $ocrStatusText.textContent = 'All pages scanned!';
-
-  setTimeout(() => {
-    $ocrOverlay.classList.remove('active');
-    assembleText();
-    showToast(`All ${totalPages} pages scanned`);
-    $statusText.textContent = `All ${totalPages} pages scanned — review and edit`;
-  }, 400);
-}
-
-function assembleText() {
-  if (totalPages === 1) {
-    $editor.value = pageTexts[0] || '';
+  // Set view toggle visibility
+  if (f.pages.length > 0) {
+    el('view-toggle').style.display = '';
+    setView(currentViewMode);
   } else {
-    const parts = [];
-    for (let i = 0; i < totalPages; i++) {
-      if (pageTexts[i]) {
-        parts.push(`--- Page ${i + 1} ---\n\n${pageTexts[i]}`);
-      }
-    }
-    $editor.value = parts.join('\n\n');
+    el('view-toggle').style.display = 'none';
+    el('image-preview').classList.add('hidden');
+    el('script-editor').classList.remove('hidden');
   }
-  updateWordCount();
+
+  // If not loaded yet, load it
+  if (f.status === 'pending') {
+    await loadAndScanFile(f.id);
+  }
 }
 
-// ── OCR (single page/image) ──
-async function runOCR(imageSrc, pageIndex) {
-  $ocrOverlay.classList.add('active');
-  $progressFill.style.width = '0%';
-  $progressText.textContent = '0%';
-  $ocrTitle.textContent = 'Reading your script';
-  $ocrStatusText.textContent = 'Initializing OCR engine...';
+window.removeFile = function(id) {
+  files = files.filter(f => f.id !== id);
+  if (activeFileId === id) {
+    activeFileId = files.length > 0 ? files[0].id : null;
+    if (activeFileId) {
+      activateFile(activeFileId);
+    } else {
+      resetApp();
+    }
+  }
+  renderFileList();
+}
+
+// ── Load & Scan ──
+async function loadAndScanFile(id) {
+  const f = files.find(x => x.id === id);
+  if (!f) return;
+
+  f.status = 'scanning';
+  renderFileList();
 
   try {
-    const result = await Tesseract.recognize(imageSrc, 'eng', {
-      logger: (m) => {
+    if (f.type === 'pdf') {
+      const buf = await f.file.arrayBuffer();
+      f.pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+      const numPages = f.pdfDoc.numPages;
+      f.pages = new Array(numPages).fill(null).map(() => ({ dataUrl: null, text: '', ocrData: null }));
+      f.currentPage = 0;
+
+      // Render and OCR first page
+      await renderPdfPage(f, 0);
+      if (f.id === activeFileId) showPage(f, 0);
+      await ocrPage(f, 0);
+    } else {
+      const dataUrl = await readFileAsDataURL(f.file);
+      f.pages = [{ dataUrl, text: '', ocrData: null }];
+      f.currentPage = 0;
+
+      if (f.id === activeFileId) showPage(f, 0);
+      await ocrPage(f, 0);
+    }
+
+    // If single page, mark done
+    if (f.pages.length === 1) {
+      f.status = 'done';
+    } else {
+      f.status = 'done';  // first page done, others pending
+    }
+  } catch (err) {
+    console.error(err);
+    showToast(`Error reading "${f.name}": ${err.message}`);
+    f.status = 'done';
+  }
+
+  renderFileList();
+  if (f.id === activeFileId) {
+    assembleText(f);
+    updatePageNav(f);
+    renderInsights(f);
+  }
+}
+
+async function renderPdfPage(f, idx) {
+  if (f.pages[idx].dataUrl) return;
+  const page = await f.pdfDoc.getPage(idx + 1);
+  const scale = 2.0;
+  const vp = page.getViewport({ scale });
+  const canvas = document.createElement('canvas');
+  canvas.width = vp.width;
+  canvas.height = vp.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+  f.pages[idx].dataUrl = canvas.toDataURL('image/png');
+}
+
+async function ocrPage(f, idx) {
+  const page = f.pages[idx];
+  if (!page.dataUrl) return;
+
+  showOCROverlay(true, f.pages.length > 1 ? `Scanning page ${idx + 1} of ${f.pages.length}` : 'Reading your script');
+
+  try {
+    const result = await Tesseract.recognize(page.dataUrl, 'eng', {
+      logger: m => {
         if (m.status === 'recognizing text') {
-          const pct = Math.round(m.progress * 100);
-          $progressFill.style.width = pct + '%';
-          $progressText.textContent = pct + '%';
-          $ocrStatusText.textContent = 'Reading your script...';
+          setProgress(Math.round(m.progress * 100));
+          setOCRStatus('Reading text...');
         } else if (m.status === 'loading language traineddata') {
-          $ocrStatusText.textContent = 'Loading language data...';
-          const pct = Math.round(m.progress * 100);
-          $progressFill.style.width = (pct * 0.3) + '%';
-          $progressText.textContent = Math.round(pct * 0.3) + '%';
+          setProgress(Math.round(m.progress * 30));
+          setOCRStatus('Loading language data...');
         } else if (m.status === 'initializing api') {
-          $ocrStatusText.textContent = 'Preparing OCR engine...';
+          setOCRStatus('Preparing OCR engine...');
         }
       }
     });
 
-    let text = cleanOCRText(result.data.text || '');
-    pageTexts[pageIndex] = text;
+    page.text = cleanOCRText(result.data.text || '');
+    page.ocrData = {
+      confidence: result.data.confidence,
+      words: (result.data.words || []).map(w => ({
+        text: w.text,
+        confidence: w.confidence,
+      })),
+      lines: (result.data.lines || []).length,
+      paragraphs: (result.data.paragraphs || []).length,
+    };
 
-    assembleText();
-    $statusText.textContent = totalPages > 1
-      ? `Page ${pageIndex + 1} scanned — use "Scan All Pages" for the full document`
-      : 'Scan complete — review and edit your script';
-    $progressFill.style.width = '100%';
-    $progressText.textContent = '100%';
-    $ocrStatusText.textContent = 'Done!';
+    // Compute overall confidence for the file
+    computeFileConfidence(f);
 
-    setTimeout(() => {
-      $ocrOverlay.classList.remove('active');
-      $editor.focus();
-      showToast(totalPages > 1
-        ? `Page ${pageIndex + 1} scanned — click "Scan All Pages" for everything`
-        : 'Script read successfully');
-    }, 500);
+    setProgress(100);
+    setOCRStatus('Done!');
+    setTimeout(() => showOCROverlay(false), 400);
+    el('status-text').textContent = `Scanned — ${page.ocrData.words.length} words detected`;
 
   } catch (err) {
-    console.error('OCR Error:', err);
-    $ocrOverlay.classList.remove('active');
-    $statusText.textContent = 'OCR failed — you can type manually';
-    showToast('OCR failed: ' + err.message);
+    console.error(err);
+    showOCROverlay(false);
+    page.text = '[OCR failed]';
+    showToast('Scan failed: ' + err.message);
   }
+}
+
+function computeFileConfidence(f) {
+  let totalConf = 0, totalWords = 0;
+  for (const p of f.pages) {
+    if (p.ocrData) {
+      totalConf += p.ocrData.confidence * p.ocrData.words.length;
+      totalWords += p.ocrData.words.length;
+    }
+  }
+  f.overallConfidence = totalWords > 0 ? totalConf / totalWords : null;
+}
+
+// ── Scan All ──
+window.scanAllFiles = async function() {
+  for (const f of files) {
+    if (f.status === 'pending') {
+      await loadAndScanFile(f.id);
+    } else if (f.pages.length > 1) {
+      // Scan remaining pages of multi-page PDFs
+      for (let i = 0; i < f.pages.length; i++) {
+        if (!f.pages[i].ocrData) {
+          if (!f.pages[i].dataUrl) await renderPdfPage(f, i);
+          await ocrPage(f, i);
+        }
+      }
+      computeFileConfidence(f);
+      renderFileList();
+    }
+  }
+  if (activeFileId) {
+    const f = files.find(x => x.id === activeFileId);
+    if (f) {
+      assembleText(f);
+      renderInsights(f);
+    }
+  }
+  showToast(`All ${files.length} files scanned`);
+}
+
+window.rerunOCR = async function() {
+  const f = files.find(x => x.id === activeFileId);
+  if (!f || f.pages.length === 0) return;
+  const pg = f.pages[f.currentPage];
+  pg.text = '';
+  pg.ocrData = null;
+  await ocrPage(f, f.currentPage);
+  assembleText(f);
+  renderInsights(f);
+  renderFileList();
+}
+
+// ── Page Navigation ──
+function showPage(f, idx) {
+  if (idx < 0 || idx >= f.pages.length) return;
+  f.currentPage = idx;
+  const pg = f.pages[idx];
+  if (pg.dataUrl) {
+    el('preview-img').src = pg.dataUrl;
+    el('image-preview').classList.remove('hidden');
+    el('btn-reocr').style.display = '';
+  }
+  updatePageNav(f);
+}
+
+function updatePageNav(f) {
+  if (!f || f.pages.length <= 1) {
+    el('preview-bar').classList.add('hidden');
+    return;
+  }
+  el('preview-bar').classList.remove('hidden');
+  el('page-indicator').textContent = `Page ${f.currentPage + 1} of ${f.pages.length}`;
+  el('btn-prev').disabled = f.currentPage <= 0;
+  el('btn-next').disabled = f.currentPage >= f.pages.length - 1;
+}
+
+window.prevPage = async function() {
+  const f = files.find(x => x.id === activeFileId);
+  if (!f || f.currentPage <= 0) return;
+  f.currentPage--;
+  if (!f.pages[f.currentPage].dataUrl) await renderPdfPage(f, f.currentPage);
+  showPage(f, f.currentPage);
+  if (!f.pages[f.currentPage].ocrData) await ocrPage(f, f.currentPage);
+  assembleText(f);
+  renderInsights(f);
+}
+
+window.nextPage = async function() {
+  const f = files.find(x => x.id === activeFileId);
+  if (!f || f.currentPage >= f.pages.length - 1) return;
+  f.currentPage++;
+  if (!f.pages[f.currentPage].dataUrl) await renderPdfPage(f, f.currentPage);
+  showPage(f, f.currentPage);
+  if (!f.pages[f.currentPage].ocrData) await ocrPage(f, f.currentPage);
+  assembleText(f);
+  renderInsights(f);
+}
+
+// ── Assemble Text ──
+function assembleText(f) {
+  if (!f) { el('script-editor').value = ''; updateWordCount(); return; }
+  if (f.pages.length === 1) {
+    el('script-editor').value = f.pages[0].text || '';
+  } else {
+    const parts = [];
+    for (let i = 0; i < f.pages.length; i++) {
+      if (f.pages[i].text) {
+        parts.push(`--- Page ${i + 1} ---\n\n${f.pages[i].text}`);
+      }
+    }
+    el('script-editor').value = parts.join('\n\n');
+  }
+  updateWordCount();
+}
+
+// ── Insights Panel ──
+function renderInsights(f) {
+  const body = el('insights-body');
+
+  if (!f || f.pages.every(p => !p.ocrData)) {
+    body.innerHTML = '<div class="insight-empty">Scan a file to see OCR insights — confidence scores, flagged words, and what may need review.</div>';
+    return;
+  }
+
+  // Gather current page data
+  const pg = f.pages[f.currentPage];
+  const ocrData = pg?.ocrData;
+
+  if (!ocrData) {
+    body.innerHTML = '<div class="insight-empty">This page hasn\'t been scanned yet. Click Re-scan or navigate to trigger scanning.</div>';
+    return;
+  }
+
+  // Overall confidence
+  const conf = Math.round(ocrData.confidence);
+  const confClass = conf >= 80 ? 'high' : conf >= 60 ? 'medium' : 'low';
+  const confDesc = conf >= 90 ? 'Excellent read — very little to review'
+    : conf >= 80 ? 'Good read — a few words may need checking'
+    : conf >= 60 ? 'Fair read — several uncertain areas flagged below'
+    : 'Poor read — many words are uncertain, review carefully';
+
+  // Stats
+  const totalWords = ocrData.words.length;
+  const lowConfWords = ocrData.words.filter(w => w.confidence < 70);
+  const medConfWords = ocrData.words.filter(w => w.confidence >= 70 && w.confidence < 85);
+  const highConfWords = ocrData.words.filter(w => w.confidence >= 85);
+
+  // Flagged words (below 85% confidence, sorted worst-first)
+  const flagged = ocrData.words
+    .filter(w => w.confidence < 85 && w.text.trim().length > 0)
+    .sort((a, b) => a.confidence - b.confidence)
+    .slice(0, 50);
+
+  let html = '';
+
+  // Confidence card
+  html += `<div class="insight-card">
+    <h4>OCR Confidence</h4>
+    <div class="confidence-label">${conf}%<small>${confClass === 'high' ? 'High' : confClass === 'medium' ? 'Medium' : 'Low'}</small></div>
+    <div class="confidence-meter"><div class="confidence-fill ${confClass}" style="width:${conf}%"></div></div>
+    <div style="font-size:11px;color:var(--text-secondary);margin-top:4px;">${confDesc}</div>
+  </div>`;
+
+  // Stats card
+  html += `<div class="insight-card">
+    <h4>Page Stats</h4>
+    <div class="stat-row"><span class="label">Words detected</span><span class="value">${totalWords}</span></div>
+    <div class="stat-row"><span class="label">Lines</span><span class="value">${ocrData.lines}</span></div>
+    <div class="stat-row"><span class="label">Paragraphs</span><span class="value">${ocrData.paragraphs}</span></div>
+    <div class="stat-row"><span class="label" style="color:var(--success)">High confidence (85%+)</span><span class="value">${highConfWords.length}</span></div>
+    <div class="stat-row"><span class="label" style="color:var(--warning)">Uncertain (70-84%)</span><span class="value">${medConfWords.length}</span></div>
+    <div class="stat-row"><span class="label" style="color:var(--error)">Low confidence (&lt;70%)</span><span class="value">${lowConfWords.length}</span></div>
+  </div>`;
+
+  // Flagged words card
+  if (flagged.length > 0) {
+    html += `<div class="insight-card">
+      <h4>Needs Review (${flagged.length})</h4>
+      <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">
+        These words had low OCR confidence. Click to find them in the editor.
+      </div>
+      <div class="flagged-list">
+        ${flagged.map(w => {
+          const cls = w.confidence < 60 ? 'low-conf' : '';
+          return `<span class="flagged-word ${cls}" onclick="findInEditor('${escAttr(w.text)}')" title="Confidence: ${Math.round(w.confidence)}%">
+            ${escHtml(w.text)}
+            <span class="conf-badge">${Math.round(w.confidence)}%</span>
+          </span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  } else {
+    html += `<div class="insight-card">
+      <div class="no-issues">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <div>All words read with high confidence. No issues found.</div>
+      </div>
+    </div>`;
+  }
+
+  // File-level summary if multi-page
+  if (f.pages.length > 1) {
+    const scannedPages = f.pages.filter(p => p.ocrData).length;
+    html += `<div class="insight-card">
+      <h4>Document Summary</h4>
+      <div class="stat-row"><span class="label">Total pages</span><span class="value">${f.pages.length}</span></div>
+      <div class="stat-row"><span class="label">Pages scanned</span><span class="value">${scannedPages}</span></div>
+      ${f.overallConfidence !== null ? `<div class="stat-row"><span class="label">Overall confidence</span><span class="value">${Math.round(f.overallConfidence)}%</span></div>` : ''}
+      ${scannedPages < f.pages.length ? `<div style="margin-top:8px;"><button class="btn btn-sm btn-primary" onclick="scanRemainingPages()" style="width:100%;justify-content:center;">Scan remaining ${f.pages.length - scannedPages} pages</button></div>` : ''}
+    </div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+window.scanRemainingPages = async function() {
+  const f = files.find(x => x.id === activeFileId);
+  if (!f) return;
+  for (let i = 0; i < f.pages.length; i++) {
+    if (!f.pages[i].ocrData) {
+      if (!f.pages[i].dataUrl) await renderPdfPage(f, i);
+      await ocrPage(f, i);
+    }
+  }
+  computeFileConfidence(f);
+  assembleText(f);
+  renderInsights(f);
+  renderFileList();
+  showToast('All pages scanned');
+}
+
+window.findInEditor = function(text) {
+  const editor = el('script-editor');
+  const val = editor.value;
+  const idx = val.indexOf(text);
+  if (idx >= 0) {
+    editor.focus();
+    editor.setSelectionRange(idx, idx + text.length);
+    // Scroll to selection
+    const linesBefore = val.slice(0, idx).split('\n').length;
+    const lineHeight = 25;
+    editor.scrollTop = Math.max(0, (linesBefore - 3) * lineHeight);
+  }
+}
+
+// ── View Modes ──
+window.setView = function(view) {
+  currentViewMode = view;
+  el('view-toggle').querySelectorAll('button').forEach(b =>
+    b.classList.toggle('active', b.dataset.view === view)
+  );
+
+  const img = el('image-preview');
+  const editor = el('script-editor');
+
+  if (view === 'preview') {
+    img.classList.remove('hidden', 'half');
+    img.classList.add('full');
+    editor.classList.add('hidden');
+  } else if (view === 'text') {
+    img.classList.add('hidden');
+    img.classList.remove('half', 'full');
+    editor.classList.remove('hidden');
+  } else {
+    img.classList.remove('hidden', 'full');
+    img.classList.add('half');
+    editor.classList.remove('hidden');
+  }
+}
+
+window.toggleFiles = function() {
+  el('files-panel').classList.toggle('hidden');
+}
+
+window.toggleInsights = function() {
+  el('insights-panel').classList.toggle('hidden');
+}
+
+// ── OCR Overlay ──
+function showOCROverlay(show, title) {
+  el('ocr-overlay').classList.toggle('active', show);
+  if (title) el('ocr-title').textContent = title;
+  if (show) { setProgress(0); setOCRStatus('Initializing...'); }
+}
+
+function setProgress(pct) {
+  el('progress-fill').style.width = pct + '%';
+  el('progress-text').textContent = pct + '%';
+}
+
+function setOCRStatus(msg) {
+  el('ocr-status-text').textContent = msg;
 }
 
 function cleanOCRText(text) {
   text = text.replace(/\n{4,}/g, '\n\n\n');
   text = text.replace(/[ \t]+$/gm, '');
-  text = text.trim();
-  return text;
-}
-
-window.rerunOCR = async function() {
-  if (pdfDoc) {
-    const idx = window.currentPage - 1;
-    pageTexts[idx] = '';
-    if (renderedPages[idx]) {
-      await runOCR(renderedPages[idx], idx);
-    }
-  } else if ($previewImg.src) {
-    pageTexts[0] = '';
-    await runOCR($previewImg.src, 0);
-  }
-}
-
-// ── Utility ──
-function readFileAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve(e.target.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-// ── View / Editor ──
-function switchToEditor(hasFile) {
-  $uploadView.style.display = 'none';
-  $editorView.classList.add('active');
-  $btnNew.style.display = '';
-  $btnExport.style.display = '';
-
-  if (hasFile) {
-    setView('split');
-    $viewToggle.style.display = '';
-    $btnReocr.style.display = '';
-  } else {
-    setView('text');
-    $viewToggle.style.display = 'none';
-    $btnReocr.style.display = 'none';
-  }
-}
-
-window.setView = function(view) {
-  currentView = view;
-  $viewToggle.querySelectorAll('button').forEach(b => {
-    b.classList.toggle('active', b.dataset.view === view);
-  });
-
-  if (view === 'image') {
-    $imagePanel.classList.remove('hidden');
-    $imagePanel.style.width = '100%';
-    $textPanel.style.display = 'none';
-  } else if (view === 'text') {
-    $imagePanel.classList.add('hidden');
-    $textPanel.style.display = '';
-  } else {
-    $imagePanel.classList.remove('hidden');
-    $imagePanel.style.width = '50%';
-    $textPanel.style.display = '';
-  }
-}
-
-window.startBlankEditor = function() {
-  currentFile = null;
-  pdfDoc = null;
-  $fileName.textContent = 'Untitled Script';
-  switchToEditor(false);
-  $editor.focus();
+  return text.trim();
 }
 
 // ── Word Count ──
-$editor.addEventListener('input', updateWordCount);
-
+el('script-editor').addEventListener('input', updateWordCount);
 function updateWordCount() {
-  const text = $editor.value.trim();
+  const text = el('script-editor').value.trim();
   const words = text ? text.split(/\s+/).length : 0;
-  const chars = text.length;
-  $wordCount.textContent = `${words} word${words !== 1 ? 's' : ''} · ${chars} characters`;
+  el('word-count').textContent = `${words} word${words !== 1 ? 's' : ''}`;
 }
 
-// ── Copy / Export ──
+// ── Copy / Export / Reset ──
 window.copyText = function() {
-  const text = $editor.value;
+  const text = el('script-editor').value;
   if (!text.trim()) { showToast('Nothing to copy'); return; }
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copied to clipboard');
-  }).catch(() => {
-    $editor.select();
-    document.execCommand('copy');
-    showToast('Copied to clipboard');
-  });
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard'))
+    .catch(() => { el('script-editor').select(); document.execCommand('copy'); showToast('Copied'); });
 }
 
 window.exportText = function() {
-  const text = $editor.value;
+  const text = el('script-editor').value;
   if (!text.trim()) { showToast('Nothing to export'); return; }
-  const name = ($fileName.textContent || 'script').replace(/\.[^.]+$/, '') + '.txt';
+  const f = files.find(x => x.id === activeFileId);
+  const name = (f?.name || 'script').replace(/\.[^.]+$/, '') + '.txt';
   const blob = new Blob([text], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
+  a.href = url; a.download = name; a.click();
   URL.revokeObjectURL(url);
   showToast('Exported as ' + name);
 }
 
-// ── Reset ──
+window.startBlankEditor = function() {
+  files = [];
+  activeFileId = null;
+  el('upload-view').style.display = 'none';
+  el('editor-view').classList.add('active');
+  el('btn-new').style.display = '';
+  el('btn-export').style.display = '';
+  el('btn-copy').style.display = '';
+  el('files-panel').classList.add('hidden');
+  el('insights-panel').classList.add('hidden');
+  el('view-toggle').style.display = 'none';
+  el('image-preview').classList.add('hidden');
+  el('preview-bar').classList.add('hidden');
+  el('script-editor').classList.remove('hidden');
+  el('script-editor').focus();
+}
+
 window.resetApp = function() {
-  currentFile = null;
-  pdfDoc = null;
-  totalPages = 0;
-  pageTexts = [];
-  renderedPages = [];
-  $editor.value = '';
-  $previewImg.src = '';
-  $previewImg.style.display = 'none';
-  $previewCanvas.style.display = 'none';
-  $fileInput.value = '';
-  $editorView.classList.remove('active');
-  $uploadView.style.display = '';
-  $btnNew.style.display = 'none';
-  $btnExport.style.display = 'none';
-  $pageNav.classList.add('hidden');
-  $statusText.textContent = 'Ready';
+  files = [];
+  activeFileId = null;
+  el('script-editor').value = '';
+  el('preview-img').src = '';
+  el('file-input').value = '';
+  el('editor-view').classList.remove('active');
+  el('upload-view').style.display = '';
+  el('btn-new').style.display = 'none';
+  el('btn-export').style.display = 'none';
+  el('btn-copy').style.display = 'none';
+  el('btn-insights').style.display = 'none';
+  el('btn-scan-all').style.display = 'none';
+  el('btn-reocr').style.display = 'none';
+  el('status-text').textContent = 'Ready';
   updateWordCount();
 }
 
-// ── Toast ──
-function showToast(message) {
-  const el = $('toast');
-  el.textContent = message;
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 3000);
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
 }
 
-// ── Init ──
+function escAttr(s) {
+  return (s || '').replace(/'/g, "\\'").replace(/\\/g, '\\\\');
+}
+
 updateWordCount();
 </script>
 </body>
